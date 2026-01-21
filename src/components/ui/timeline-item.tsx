@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
-import { StatusPill, StatusType } from '@/app/components/ui/status-pill';
+import { StatusPill, StatusType } from '@/components/ui/status-pill';
 
 export interface TimelineItemData {
   id: string;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from './auth-provider';
-import { useTranslation } from '../../lib/i18n/i18n-context';
+import { useAuth } from '@/lib/auth/auth-provider';
+import { useTranslation } from '@/lib/i18n/i18n-context';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';

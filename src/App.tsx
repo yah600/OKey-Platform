@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ThemeProvider } from '@/lib/hooks/use-theme';
 import { AuthProvider, useAuth } from '@/lib/auth/auth-provider';
-import { RBACProvider, useRBAC } from '@/lib/rbac/rbac-context';
+import { RBACProvider } from '@/lib/rbac/rbac-context';
 import { I18nProvider } from '@/lib/i18n/i18n-context';
 import { BidProvider } from '@/context/BidContext';
 import { Toaster } from '@/components/ui/sonner';
@@ -49,8 +49,8 @@ type Route =
   | 'login' | 'register';
 
 function AppContent() {
-  const { user, isAuthenticated } = useAuth();
-  const { can } = useRBAC();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   const [currentRoute, setCurrentRoute] = useState<Route>('marketplace');
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
@@ -72,13 +72,13 @@ function AppContent() {
     }
   }, [isAuthenticated, user?.role]);
 
-  const handleNavigate = (route: Route, id?: string) => {
+  const handleNavigate = (route: string, id?: string) => {
     if (route === 'property') {
       setSelectedPropertyId(id || null);
     } else if (route === 'unit') {
       setSelectedUnitId(id || null);
     }
-    setCurrentRoute(route);
+    setCurrentRoute(route as Route);
   };
 
   // Auth routes
@@ -96,8 +96,6 @@ function AppContent() {
 
   // Determine which layout to use
   const isPublicRoute = ['marketplace', 'search', 'property', 'unit', 'score', 'my-bids'].includes(currentRoute);
-  const isTenantRoute = currentRoute.startsWith('tenant-');
-  const isOwnerRoute = ['owner-dashboard', 'properties', 'tenants', 'finances', 'maintenance', 'documents', 'analytics'].includes(currentRoute);
 
   // Render content based on route
   const renderContent = () => {
@@ -183,7 +181,7 @@ function AppContent() {
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="okey-theme">
+    <ThemeProvider>
       <I18nProvider defaultLanguage="en">
         <AuthProvider>
           <RBACProvider>

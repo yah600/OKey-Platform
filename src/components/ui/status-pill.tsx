@@ -1,4 +1,4 @@
-import { Badge } from '@/app/components/ui/badge';
+import { Badge } from '@/components/ui/badge';
 
 export type StatusType = 
   | 'new' | 'triaged' | 'dispatched' | 'on-site' | 'resolved' | 'closed'

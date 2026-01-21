@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { mockBids, mockUnits, type Bid, type Unit } from '@/app/data/mockData';
+import { mockBids, mockUnits } from '@/lib/data/mockData';
+import type { Bid, Unit } from '@/types';
 
 interface BidContextType {
   bids: Bid[];
@@ -32,8 +33,10 @@ export function BidProvider({ children }: { children: ReactNode }) {
       bidderName: 'You',
       bidderScore: 720, // User's score
       amount,
-      date: 'Just now',
-      status: 'active'
+      autoBid: false,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     // Add bid to bids list
