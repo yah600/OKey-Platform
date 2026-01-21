@@ -3,13 +3,15 @@ import { BidProvider } from './context/BidContext';
 
 // Pages
 import { MarketplaceHome } from './features/marketplace/marketplace-home';
+import { PropertySearch } from './features/marketplace/property-search';
 import { PropertyDetail } from './features/marketplace/property-detail';
 import { UnitDetail } from './features/marketplace/unit-detail';
 import { ScoreDashboard } from './features/marketplace/score-dashboard';
 import { MyBids } from './features/marketplace/my-bids';
+import { TenantDashboard } from './features/tenant-portal/tenant-dashboard';
 import { OwnerDashboard } from './features/property-management/owner-dashboard';
 
-type Page = 'home' | 'property' | 'unit' | 'score' | 'bids' | 'owner';
+type Page = 'home' | 'search' | 'property' | 'unit' | 'score' | 'bids' | 'tenant' | 'owner';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -40,6 +42,12 @@ function App() {
               Home
             </button>
             <button
+              onClick={() => navigate('search')}
+              className={`px-4 py-2 rounded ${currentPage === 'search' ? 'bg-teal-600 text-white' : 'hover:bg-gray-100'}`}
+            >
+              Search
+            </button>
+            <button
               onClick={() => navigate('score')}
               className={`px-4 py-2 rounded ${currentPage === 'score' ? 'bg-teal-600 text-white' : 'hover:bg-gray-100'}`}
             >
@@ -52,10 +60,16 @@ function App() {
               My Bids
             </button>
             <button
+              onClick={() => navigate('tenant')}
+              className={`px-4 py-2 rounded ${currentPage === 'tenant' ? 'bg-teal-600 text-white' : 'hover:bg-gray-100'}`}
+            >
+              Tenant
+            </button>
+            <button
               onClick={() => navigate('owner')}
               className={`px-4 py-2 rounded ${currentPage === 'owner' ? 'bg-teal-600 text-white' : 'hover:bg-gray-100'}`}
             >
-              Owner Portal
+              Owner
             </button>
           </div>
         </div>
@@ -63,10 +77,12 @@ function App() {
 
       {/* Page Content */}
       {currentPage === 'home' && <MarketplaceHome onNavigate={navigate} />}
+      {currentPage === 'search' && <PropertySearch onNavigate={navigate} />}
       {currentPage === 'property' && <PropertyDetail propertyId={selectedId} onNavigate={navigate} />}
       {currentPage === 'unit' && <UnitDetail unitId={selectedId} onNavigate={navigate} />}
       {currentPage === 'score' && <ScoreDashboard onNavigate={navigate} />}
       {currentPage === 'bids' && <MyBids onNavigate={navigate} />}
+      {currentPage === 'tenant' && <TenantDashboard onNavigate={navigate} />}
       {currentPage === 'owner' && <OwnerDashboard onNavigate={navigate} />}
     </div>
     </BidProvider>
