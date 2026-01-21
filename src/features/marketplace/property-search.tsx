@@ -47,17 +47,22 @@ export function PropertySearch({ onNavigate }: PropertySearchProps) {
   const activeFiltersCount = [priceMin, priceMax, bedrooms, bathrooms].filter(Boolean).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-2">Search Properties</h1>
-            <p className="text-lg text-gray-600">Find your perfect rental from {mockProperties.length} available properties</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Modern Header */}
+      <div className="bg-white border-b shadow-sm">
+        <div className="container mx-auto px-6 py-8">
+          <div className="max-w-7xl mx-auto">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">Discover Your Next Home</h1>
+            <p className="text-lg text-gray-600">Browse {mockProperties.length} verified properties across Montreal</p>
           </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto">
 
           {/* Search & Filter Bar */}
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
             <div className="flex flex-col md:flex-row gap-4">
               {/* Search Input */}
               <div className="flex-1 relative">
@@ -162,8 +167,8 @@ export function PropertySearch({ onNavigate }: PropertySearchProps) {
 
           {/* Results Count */}
           <div className="mb-6">
-            <p className="text-gray-600">
-              Showing <span className="font-bold text-teal-600">{filteredProperties.length}</span> of {mockProperties.length} properties
+            <p className="text-lg text-gray-700">
+              <span className="font-bold text-gray-900">{filteredProperties.length}</span> <span className="text-gray-600">properties available</span>
             </p>
           </div>
 
@@ -194,15 +199,16 @@ export function PropertySearch({ onNavigate }: PropertySearchProps) {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
+                    whileHover={{ y: -8, transition: { duration: 0.2 } }}
                     onClick={() => onNavigate('property', property.id)}
-                    className="bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow cursor-pointer overflow-hidden"
+                    className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-2xl transition-all duration-300 cursor-pointer overflow-hidden group"
                   >
                     {/* Image */}
-                    <div className="relative h-48 bg-gray-200">
+                    <div className="relative h-56 bg-gray-200 overflow-hidden">
                       <img
                         src={property.images[0]}
                         alt={property.buildingName}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                       {property.verified && (
                         <div className="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
@@ -218,41 +224,41 @@ export function PropertySearch({ onNavigate }: PropertySearchProps) {
                     </div>
 
                     {/* Content */}
-                    <div className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="text-lg font-bold">{property.buildingName}</h3>
+                    <div className="p-6">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-teal-600 transition-colors">{property.buildingName}</h3>
                           <p className="text-sm text-gray-600 flex items-center gap-1">
-                            <MapPin className="w-3 h-3" />
+                            <MapPin className="w-4 h-4" />
                             {property.city}, {property.province}
                           </p>
                         </div>
-                        <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded">
-                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                          <span className="text-sm font-medium">{(property.buildingScore / 100).toFixed(1)}</span>
+                        <div className="flex items-center gap-1 bg-gradient-to-br from-yellow-50 to-orange-50 px-3 py-1.5 rounded-lg border border-yellow-200">
+                          <Star className="w-4 h-4 text-yellow-600 fill-yellow-500" />
+                          <span className="text-sm font-bold text-yellow-900">{(property.buildingScore / 100).toFixed(1)}</span>
                         </div>
                       </div>
 
-                      <div className="mb-3">
-                        <div className="text-xl font-bold text-teal-600">
-                          From ${minPrice.toLocaleString()}/mo
+                      <div className="mb-4 pb-4 border-b">
+                        <div className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-teal-500 bg-clip-text text-transparent">
+                          From ${minPrice.toLocaleString()}<span className="text-base text-gray-600 font-normal">/mo</span>
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap gap-2 mb-3">
+                      <div className="flex flex-wrap gap-2 mb-4">
                         {property.amenities.slice(0, 3).map((amenity, i) => (
-                          <span key={i} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                          <span key={i} className="px-3 py-1 bg-gray-100 text-gray-700 text-xs rounded-full font-medium">
                             {amenity}
                           </span>
                         ))}
                         {property.amenities.length > 3 && (
-                          <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded">
+                          <span className="px-3 py-1 bg-teal-100 text-teal-700 text-xs rounded-full font-medium">
                             +{property.amenities.length - 3} more
                           </span>
                         )}
                       </div>
 
-                      <button className="w-full py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 font-medium">
+                      <button className="w-full py-3 bg-gradient-to-r from-teal-600 to-teal-500 text-white rounded-lg hover:shadow-lg hover:shadow-teal-600/30 font-semibold transition-all duration-300">
                         View Property
                       </button>
                     </div>

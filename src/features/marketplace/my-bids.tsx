@@ -198,14 +198,19 @@ export function MyBids({ onNavigate }: MyBidsProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        <div className="max-w-6xl mx-auto">
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-2">My Bids</h1>
-            <p className="text-lg text-gray-600">Track all your rental bids in one place</p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      {/* Modern Header */}
+      <div className="bg-white border-b shadow-sm">
+        <div className="container mx-auto px-6 py-8">
+          <div className="max-w-6xl mx-auto">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">My Bids</h1>
+            <p className="text-lg text-gray-600">Track and manage all your rental applications</p>
           </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-6 py-8">
+        <div className="max-w-6xl mx-auto">
 
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">

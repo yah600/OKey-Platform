@@ -32,10 +32,10 @@ export function MarketplaceHome({ onNavigate }: MarketplaceHomeProps) {
   ];
 
   const categories = [
-    { id: 'all', label: 'All Properties', icon: '🏘️', count: mockProperties.length },
-    { id: 'downtown', label: 'Downtown', icon: '🏢', count: mockProperties.length },
-    { id: 'waterfront', label: 'Waterfront', icon: '🏙️', count: 1 },
-    { id: 'historic', label: 'Historic', icon: '🏛️', count: 1 },
+    { id: 'all', label: 'All Properties', count: mockProperties.length },
+    { id: 'downtown', label: 'Downtown', count: mockProperties.length },
+    { id: 'waterfront', label: 'Waterfront', count: 1 },
+    { id: 'historic', label: 'Historic', count: 1 },
   ];
 
   const features = [
@@ -118,22 +118,31 @@ export function MarketplaceHome({ onNavigate }: MarketplaceHomeProps) {
             </motion.div>
 
             {/* Quick Categories */}
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              {categories.map((cat) => (
-                <Button
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="mt-8 flex flex-wrap justify-center gap-3"
+            >
+              {categories.map((cat, index) => (
+                <motion.div
                   key={cat.id}
-                  variant={selectedCategory === cat.id ? 'secondary' : 'outline'}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className="bg-white/10 hover:bg-white/20 text-white border-white/30"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  <span className="mr-2">{cat.icon}</span>
-                  {cat.label}
-                  <Badge variant="secondary" className="ml-2 bg-white/20">
-                    {cat.count}
-                  </Badge>
-                </Button>
+                  <Button
+                    variant={selectedCategory === cat.id ? 'secondary' : 'outline'}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className="bg-white/10 hover:bg-white/20 text-white border-white/30 transition-all duration-300"
+                  >
+                    {cat.label}
+                    <Badge variant="secondary" className="ml-2 bg-white/20">
+                      {cat.count}
+                    </Badge>
+                  </Button>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -148,14 +157,15 @@ export function MarketplaceHome({ onNavigate }: MarketplaceHomeProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
-                className="text-center"
+                whileHover={{ scale: 1.05, y: -5 }}
+                className="text-center cursor-pointer"
               >
                 <div className="flex justify-center mb-3">
                   <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center"
+                    className="w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-lg"
                     style={{ backgroundColor: `${stat.color}20` }}
                   >
-                    <stat.icon className="w-8 h-8" style={{ color: stat.color }} />
+                    <stat.icon className="w-8 h-8 transition-transform duration-300 hover:scale-110" style={{ color: stat.color }} />
                   </div>
                 </div>
                 <div className="text-3xl font-bold mb-1" style={{ color: stat.color }}>
@@ -190,16 +200,18 @@ export function MarketplaceHome({ onNavigate }: MarketplaceHomeProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
+                whileHover={{ scale: 1.02, y: -5 }}
+                className="h-full"
               >
                 <Card
-                  className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                  className="overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer h-full"
                   onClick={() => onNavigate('property', property.id)}
                 >
-                  <div className="relative h-48 bg-gray-200">
+                  <div className="relative h-48 bg-gray-200 overflow-hidden group">
                     <img
                       src={property.images[0]}
                       alt={property.buildingName}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     {property.verified && (
                       <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
@@ -275,10 +287,11 @@ export function MarketplaceHome({ onNavigate }: MarketplaceHomeProps) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
-                className="text-center"
+                whileHover={{ scale: 1.05, y: -10 }}
+                className="text-center p-6 rounded-xl hover:bg-gray-50 transition-all duration-300 cursor-pointer"
               >
                 <div className="flex justify-center mb-4">
-                  <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center">
+                  <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center transition-all duration-300 hover:shadow-xl hover:bg-white">
                     {feature.icon}
                   </div>
                 </div>
