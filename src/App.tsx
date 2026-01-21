@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BidProvider } from './context/BidContext';
 
 // Pages
 import { MarketplaceHome } from './features/marketplace/marketplace-home';
@@ -20,7 +21,8 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <BidProvider>
+      <div className="min-h-screen bg-gray-50">
       {/* Simple Navigation */}
       <nav className="bg-white border-b sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
@@ -67,6 +69,7 @@ function App() {
       {currentPage === 'bids' && <MyBids onNavigate={navigate} />}
       {currentPage === 'owner' && <OwnerDashboard onNavigate={navigate} />}
     </div>
+    </BidProvider>
   );
 }
 
