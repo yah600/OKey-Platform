@@ -1,259 +1,307 @@
-import { ArrowLeft, MapPin, Calendar, Users, CheckCircle2, Star, TrendingUp } from 'lucide-react';
-import { Button } from '@/app/components/ui/button';
-import { Card, CardContent } from '@/app/components/ui/card';
-import { Badge } from '@/app/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/tabs';
-import { ScoreBadge } from '@/app/components/score-badge';
-import { useBids } from '@/app/context/BidContext';
-import { mockProperties } from '@/app/data/mockData';
+import { ArrowLeft, MapPin, Calendar, Users, CheckCircle2, Star, TrendingUp, BedDouble, Bath, Square } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { getPropertyById, getUnitsByPropertyId } from '@/lib/data/mockData';
 
-interface BuildingDetailProps {
+interface PropertyDetailProps {
   propertyId: string;
-  onBack: () => void;
-  onUnitClick: (unitId: string) => void;
+  onNavigate: (route: string, id?: string) => void;
 }
 
-export function BuildingDetail({ propertyId, onBack, onUnitClick }: BuildingDetailProps) {
-  const { units } = useBids();
-  const property = mockProperties.find(p => p.id === propertyId);
-  const buildingUnits = units.filter(u => u.buildingId === propertyId);
+export function PropertyDetail({ propertyId, onNavigate }: PropertyDetailProps) {
+  const property = getPropertyById(propertyId);
+  const units = getUnitsByPropertyId(propertyId);
 
-  if (!property) return null;
+  if (!property) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Property Not Found</h2>
+          <Button onClick={() => onNavigate('marketplace')}>Back to Home</Button>
+        </div>
+      </div>
+    );
+  }
 
-  const getStatusColor = (status: string) => {
-    if (status === 'available') return 'bg-green-500';
-    if (status === 'pending') return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
-
-  const getStatusText = (status: string) => {
-    if (status === 'available') return 'Available';
-    if (status === 'pending') return 'Pending';
-    return 'Occupied';
-  };
+  const availableUnits = units.filter(u => u.status === 'available');
+  const activeAuctions = units.filter(u => u.auctionActive);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Image Gallery */}
       <div className="relative h-96 bg-gray-900">
-        <img 
-          src={property.image} 
+        <img
+          src={property.images[0]}
           alt={property.buildingName}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        
+
         <Button
           variant="outline"
           className="absolute top-4 left-4 bg-white hover:bg-gray-100"
-          onClick={onBack}
+          onClick={() => onNavigate('marketplace')}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Search
+          Back
         </Button>
 
         <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
           <div className="container mx-auto">
             <div className="flex items-start justify-between">
               <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-4xl font-bold">{property.buildingName}</h1>
-                  {property.verified && (
-                    <Badge className="bg-white text-[#0D7377]">
-                      <CheckCircle2 className="w-4 h-4 mr-1" />
-                      Verified
-                    </Badge>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 text-lg">
+                <h1 className="text-4xl font-bold mb-2">{property.buildingName}</h1>
+                <p className="text-lg flex items-center gap-2 mb-4">
                   <MapPin className="w-5 h-5" />
-                  {property.address}
+                  {property.address}, {property.city}, {property.province}
+                </p>
+              </div>
+              <div className="bg-white/10 backdrop-blur-md rounded-lg p-4 text-center">
+                <div className="flex items-center gap-2 mb-1">
+                  <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                  <span className="text-2xl font-bold">{(property.buildingScore / 100).toFixed(1)}</span>
                 </div>
+                <div className="text-sm">Building Score</div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Content */}
       <div className="container mx-auto px-4 py-8">
-        {/* Building Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card>
-            <CardContent className="p-6 text-center">
-              <ScoreBadge score={property.buildingScore} size="md" />
-              <p className="text-sm text-muted-foreground mt-2">Building Score</p>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-[#0D7377]">{property.totalUnits}</div>
+              <div className="text-sm text-gray-600">Total Units</div>
             </CardContent>
           </Card>
-
           <Card>
-            <CardContent className="p-6 text-center">
-              <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-[#FEF3E8] rounded-full flex items-center justify-center mb-2">
-                  <Star className="w-8 h-8 text-[#F4A261]" />
-                </div>
-                <div className="text-3xl font-bold text-[#F4A261]">{property.ownerScore}</div>
-                <p className="text-sm text-muted-foreground">Owner Score</p>
-              </div>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-[#F4A261]">{availableUnits.length}</div>
+              <div className="text-sm text-gray-600">Available</div>
             </CardContent>
           </Card>
-
           <Card>
-            <CardContent className="p-6 text-center">
-              <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-[#E6F7F8] rounded-full flex items-center justify-center mb-2">
-                  <Users className="w-8 h-8 text-[#0D7377]" />
-                </div>
-                <div className="text-3xl font-bold">{property.availableUnits}</div>
-                <p className="text-sm text-muted-foreground">Available Units</p>
-              </div>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-[#E76F51]">{property.occupancyRate}%</div>
+              <div className="text-sm text-gray-600">Occupancy</div>
             </CardContent>
           </Card>
-
           <Card>
-            <CardContent className="p-6 text-center">
-              <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-[#E6F7F8] rounded-full flex items-center justify-center mb-2">
-                  <TrendingUp className="w-8 h-8 text-[#0D7377]" />
-                </div>
-                <div className="text-3xl font-bold">{property.occupancyRate}%</div>
-                <p className="text-sm text-muted-foreground">Occupancy Rate</p>
-              </div>
+            <CardContent className="p-4 text-center">
+              <div className="text-2xl font-bold text-[#0D7377]">{property.yearBuilt}</div>
+              <div className="text-sm text-gray-600">Year Built</div>
             </CardContent>
           </Card>
         </div>
 
-        <Tabs defaultValue="units" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="units">Available Units ({buildingUnits.length})</TabsTrigger>
-            <TabsTrigger value="overview">Building Overview</TabsTrigger>
-            <TabsTrigger value="amenities">Amenities</TabsTrigger>
-            <TabsTrigger value="reviews">Reviews</TabsTrigger>
-          </TabsList>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            <Tabs defaultValue="units" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="units">Available Units ({availableUnits.length})</TabsTrigger>
+                <TabsTrigger value="amenities">Amenities</TabsTrigger>
+                <TabsTrigger value="about">About</TabsTrigger>
+              </TabsList>
 
-          <TabsContent value="units" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {buildingUnits.map((unit) => (
-                <Card 
-                  key={unit.id} 
-                  className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => onUnitClick(unit.id)}
-                >
-                  <div className="relative h-48">
-                    {unit.images[0] && (
-                      <img 
-                        src={unit.images[0]} 
-                        alt={`Unit ${unit.unitNumber}`}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                    <Badge 
-                      className={`absolute top-3 right-3 ${getStatusColor(unit.status)} text-white`}
-                    >
-                      {getStatusText(unit.status)}
-                    </Badge>
-                  </div>
-
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-xl font-semibold">Unit {unit.unitNumber}</h3>
-                      <Badge variant="outline">Floor {unit.floor}</Badge>
-                    </div>
-
-                    <div className="text-sm text-muted-foreground mb-3">
-                      {unit.bedrooms} Bed | {unit.bathrooms} Bath | {unit.sqft} sq ft
-                    </div>
-
-                    {unit.status === 'available' && (
-                      <>
-                        <div className="mb-3">
-                          <div className="text-sm text-muted-foreground">
-                            {unit.type === 'rent' ? 'Starting Bid' : 'Asking Price'}
+              <TabsContent value="units" className="mt-6">
+                <div className="space-y-4">
+                  {availableUnits.length === 0 ? (
+                    <Card>
+                      <CardContent className="p-8 text-center text-gray-500">
+                        No units currently available
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    availableUnits.map((unit) => (
+                      <Card
+                        key={unit.id}
+                        className="hover:shadow-lg transition-shadow cursor-pointer"
+                        onClick={() => onNavigate('unit', unit.id)}
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="text-xl font-bold mb-1">Unit {unit.unitNumber}</h3>
+                              <p className="text-sm text-gray-600">Floor {unit.floor}</p>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-[#0D7377]">
+                                ${unit.askingPrice.toLocaleString()}
+                              </div>
+                              <div className="text-xs text-gray-500">per month</div>
+                            </div>
                           </div>
-                          <div className="text-2xl font-bold text-[#0D7377]">
-                            ${unit.askingPrice.toLocaleString()}{unit.type === 'rent' && '/mo'}
+
+                          <div className="grid grid-cols-3 gap-4 mb-4">
+                            <div className="flex items-center gap-2">
+                              <BedDouble className="w-4 h-4 text-gray-400" />
+                              <span className="text-sm">{unit.bedrooms} beds</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Bath className="w-4 h-4 text-gray-400" />
+                              <span className="text-sm">{unit.bathrooms} baths</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Square className="w-4 h-4 text-gray-400" />
+                              <span className="text-sm">{unit.sqft} sqft</span>
+                            </div>
                           </div>
-                          {unit.currentBid && (
-                            <div className="text-sm text-[#E76F51] font-semibold">
-                              Current bid: ${unit.currentBid.toLocaleString()}{unit.type === 'rent' && '/mo'}
+
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            {unit.features.slice(0, 4).map((feature, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {feature}
+                              </Badge>
+                            ))}
+                            {unit.features.length > 4 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{unit.features.length - 4} more
+                              </Badge>
+                            )}
+                          </div>
+
+                          {unit.auctionActive && (
+                            <div className="flex items-center justify-between pt-4 border-t">
+                              <div className="flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4 text-green-600" />
+                                <span className="text-sm font-medium text-green-600">
+                                  Live Auction - {unit.totalBids} bids
+                                </span>
+                              </div>
+                              {unit.currentBid && (
+                                <div className="text-sm">
+                                  Current bid: <span className="font-bold">${unit.currentBid.toLocaleString()}</span>
+                                </div>
+                              )}
                             </div>
                           )}
+
+                          {!unit.auctionActive && unit.buyNowPrice && (
+                            <div className="pt-4 border-t">
+                              <div className="text-sm text-gray-600">
+                                Buy Now: <span className="font-bold text-[#0D7377]">${unit.buyNowPrice.toLocaleString()}/mo</span>
+                              </div>
+                            </div>
+                          )}
+
+                          <Button className="w-full mt-4 bg-[#0D7377] hover:bg-[#0a5a5d]">
+                            View Details & Bid
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="amenities" className="mt-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-bold mb-4">Building Amenities</h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {property.amenities.map((amenity, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <CheckCircle2 className="w-5 h-5 text-green-600" />
+                          <span>{amenity}</span>
                         </div>
-
-                        <div className="flex items-center justify-between mb-3 text-sm">
-                          <span className="text-muted-foreground">Bids: {unit.totalBids}</span>
-                          <span className="text-muted-foreground">Ends in {unit.auctionEndsIn}h</span>
-                        </div>
-
-                        <Button 
-                          className="w-full bg-[#0D7377] hover:bg-[#0a5a5d]"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onUnitClick(unit.id);
-                          }}
-                        >
-                          View & Bid
-                        </Button>
-                      </>
-                    )}
-
-                    {unit.status !== 'available' && (
-                      <div className="text-center py-4 text-muted-foreground">
-                        Available {unit.availableDate}
-                      </div>
-                    )}
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="overview">
-            <Card>
-              <CardContent className="p-6">
-                <p className="text-lg mb-6">{property.description}</p>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div>
-                    <div className="text-sm text-muted-foreground mb-1">Year Built</div>
-                    <div className="font-semibold">{property.yearBuilt}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted-foreground mb-1">Total Units</div>
-                    <div className="font-semibold">{property.totalUnits}</div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted-foreground mb-1">Price Range</div>
-                    <div className="font-semibold">{property.priceRange}</div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              <TabsContent value="about" className="mt-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-bold mb-4">About This Property</h3>
+                    <p className="text-gray-700 mb-6">{property.description}</p>
 
-          <TabsContent value="amenities">
-            <Card>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {property.amenities.map((amenity, idx) => (
-                    <div key={idx} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                      <CheckCircle2 className="w-5 h-5 text-[#0D7377]" />
-                      <span>{amenity}</span>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="text-sm text-gray-600">Year Built</div>
+                        <div className="font-medium">{property.yearBuilt}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Total Units</div>
+                        <div className="font-medium">{property.totalUnits}</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Occupancy Rate</div>
+                        <div className="font-medium">{property.occupancyRate}%</div>
+                      </div>
+                      <div>
+                        <div className="text-sm text-gray-600">Building Score</div>
+                        <div className="font-medium flex items-center gap-1">
+                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          {(property.buildingScore / 100).toFixed(1)}
+                        </div>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
 
-          <TabsContent value="reviews">
-            <Card>
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-4">
               <CardContent className="p-6">
-                <div className="text-center text-muted-foreground py-8">
-                  Reviews from verified tenants will appear here
+                <h3 className="text-lg font-bold mb-4">Property Owner</h3>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-[#0D7377] rounded-full flex items-center justify-center text-white font-bold">
+                    {property.ownerName?.charAt(0) || 'O'}
+                  </div>
+                  <div>
+                    <div className="font-medium">{property.ownerName}</div>
+                    <div className="text-sm text-gray-600">Property Owner</div>
+                  </div>
                 </div>
+
+                {property.ownerScore && (
+                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                    <div className="text-sm text-gray-600 mb-1">Owner Score</div>
+                    <div className="text-2xl font-bold text-[#0D7377]">{property.ownerScore}</div>
+                    <div className="text-xs text-gray-500 mt-1">Verified & Trusted</div>
+                  </div>
+                )}
+
+                {property.verified && (
+                  <div className="flex items-center gap-2 text-green-600 text-sm mb-4">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span>Verified Property</span>
+                  </div>
+                )}
+
+                <div className="space-y-3 pt-4 border-t">
+                  <div>
+                    <div className="text-sm text-gray-600">Price Range</div>
+                    <div className="font-medium">{property.priceRange}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-600">Available Date</div>
+                    <div className="font-medium">
+                      {availableUnits.length > 0
+                        ? new Date(availableUnits[0].availableDate).toLocaleDateString()
+                        : 'Contact owner'}
+                    </div>
+                  </div>
+                </div>
+
+                <Button className="w-full mt-6 bg-[#0D7377] hover:bg-[#0a5a5d]">
+                  Contact Owner
+                </Button>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </div>
     </div>
   );
