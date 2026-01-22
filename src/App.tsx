@@ -18,6 +18,10 @@ import OwnerMeetingsPage from './pages/owner/OwnerMeetingsPage';
 import OwnerSettingsPage from './pages/owner/OwnerSettingsPage';
 import PortfolioAnalytics from './pages/owner/PortfolioAnalytics';
 import PropertyDetailPage from './pages/owner/PropertyDetailPage';
+import ResidentDetailPage from './pages/owner/ResidentDetailPage';
+import VendorManagement from './pages/owner/VendorManagement';
+import CalendarPage from './pages/owner/CalendarPage';
+import TaskManagement from './pages/owner/TaskManagement';
 import MarketplaceHome from './pages/marketplace/MarketplaceHome';
 import PropertySearch from './pages/marketplace/PropertySearch';
 import PropertyDetail from './pages/marketplace/PropertyDetail';
@@ -123,7 +127,11 @@ function App() {
                   <Route path="properties" element={<PropertiesPage />} />
                   <Route path="properties/:id" element={<PropertyDetailPage />} />
                   <Route path="residents" element={<ResidentsPage />} />
+                  <Route path="residents/:id" element={<ResidentDetailPage />} />
                   <Route path="financials" element={<FinancialsPage />} />
+                  <Route path="vendors" element={<VendorManagement />} />
+                  <Route path="calendar" element={<CalendarPage />} />
+                  <Route path="tasks" element={<TaskManagement />} />
                   <Route path="maintenance" element={<OwnerMaintenancePage />} />
                   <Route path="documents" element={<OwnerDocumentsPage />} />
                   <Route path="meetings" element={<OwnerMeetingsPage />} />
