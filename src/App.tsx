@@ -22,6 +22,8 @@ import ResidentDetailPage from './pages/owner/ResidentDetailPage';
 import VendorManagement from './pages/owner/VendorManagement';
 import CalendarPage from './pages/owner/CalendarPage';
 import TaskManagement from './pages/owner/TaskManagement';
+import UnitsManagement from './pages/owner/UnitsManagement';
+import ScheduledMaintenance from './pages/owner/ScheduledMaintenance';
 import MarketplaceHome from './pages/marketplace/MarketplaceHome';
 import PropertySearch from './pages/marketplace/PropertySearch';
 import PropertyDetail from './pages/marketplace/PropertyDetail';
@@ -126,6 +128,7 @@ function App() {
                   <Route path="dashboard" element={<OwnerDashboard />} />
                   <Route path="properties" element={<PropertiesPage />} />
                   <Route path="properties/:id" element={<PropertyDetailPage />} />
+                  <Route path="properties/:propertyId/units" element={<UnitsManagement />} />
                   <Route path="residents" element={<ResidentsPage />} />
                   <Route path="residents/:id" element={<ResidentDetailPage />} />
                   <Route path="financials" element={<FinancialsPage />} />
@@ -133,6 +136,7 @@ function App() {
                   <Route path="calendar" element={<CalendarPage />} />
                   <Route path="tasks" element={<TaskManagement />} />
                   <Route path="maintenance" element={<OwnerMaintenancePage />} />
+                  <Route path="maintenance/scheduled" element={<ScheduledMaintenance />} />
                   <Route path="documents" element={<OwnerDocumentsPage />} />
                   <Route path="meetings" element={<OwnerMeetingsPage />} />
                   <Route path="analytics" element={<PortfolioAnalytics />} />
