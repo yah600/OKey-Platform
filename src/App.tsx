@@ -8,6 +8,11 @@ import MaintenancePage from './pages/tenant/MaintenancePage';
 import DocumentsPage from './pages/tenant/DocumentsPage';
 import MessagesPage from './pages/tenant/MessagesPage';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
+import PropertiesPage from './pages/owner/PropertiesPage';
+import ResidentsPage from './pages/owner/ResidentsPage';
+import FinancialsPage from './pages/owner/FinancialsPage';
+import OwnerMaintenancePage from './pages/owner/OwnerMaintenancePage';
+import OwnerDocumentsPage from './pages/owner/OwnerDocumentsPage';
 
 function PrivateRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
   const { isAuthenticated, user } = useAuthStore();
@@ -72,6 +77,11 @@ function App() {
               <DashboardLayout>
                 <Routes>
                   <Route path="dashboard" element={<OwnerDashboard />} />
+                  <Route path="properties" element={<PropertiesPage />} />
+                  <Route path="residents" element={<ResidentsPage />} />
+                  <Route path="financials" element={<FinancialsPage />} />
+                  <Route path="maintenance" element={<OwnerMaintenancePage />} />
+                  <Route path="documents" element={<OwnerDocumentsPage />} />
                 </Routes>
               </DashboardLayout>
             </PrivateRoute>
