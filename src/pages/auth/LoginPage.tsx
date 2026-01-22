@@ -22,7 +22,7 @@ export default function LoginPage() {
     const success = await login(email, password);
 
     if (success) {
-      navigate('/marketplace');
+      navigate('/dashboard');
     } else {
       setError('Invalid credentials');
     }
