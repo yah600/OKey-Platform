@@ -1,16 +1,29 @@
+import { useState, useEffect } from 'react';
 import { DollarSign, TrendingUp, TrendingDown, Download } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Loading from '../../components/ui/Loading';
 
 export default function FinancialsPage() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const transactions = [
     { id: 1, type: 'income', desc: 'Rent - Sunset Apt #4B', amount: 2500, date: '2026-01-01' },
     { id: 2, type: 'expense', desc: 'Plumbing repair - Downtown #12A', amount: -350, date: '2026-01-15' },
     { id: 3, type: 'income', desc: 'Rent - Downtown #12A', amount: 2200, date: '2026-01-01' },
   ];
 
+  if (isLoading) {
+    return <div className="p-6"><Loading /></div>;
+  }
+
   return (
-    <div className="p-6">
+    <div className="p-6 animate-fadeIn">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900 mb-1">Financials</h1>

@@ -1,16 +1,29 @@
+import { useState, useEffect } from 'react';
 import { Mail, Send } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Loading from '../../components/ui/Loading';
 
 export default function MessagesPage() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const messages = [
     { id: 1, from: 'Property Manager', subject: 'Lease Renewal Reminder', preview: 'Your lease is set to expire on Dec 31, 2026...', date: '2026-01-20', unread: true },
     { id: 2, from: 'Property Manager', subject: 'Maintenance Update', preview: 'The kitchen faucet repair has been scheduled...', date: '2026-01-18', unread: false },
     { id: 3, from: 'Building Manager', subject: 'Monthly Newsletter', preview: 'Check out what is happening this month...', date: '2026-01-15', unread: false },
   ];
 
+  if (isLoading) {
+    return <div className="p-6"><Loading /></div>;
+  }
+
   return (
-    <div className="p-6">
+    <div className="p-6 animate-fadeIn">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900 mb-1">Messages</h1>

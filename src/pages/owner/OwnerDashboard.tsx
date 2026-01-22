@@ -1,13 +1,25 @@
+import { useState, useEffect } from 'react';
 import { Building2, DollarSign, Users, TrendingUp, AlertCircle, Wrench } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Loading from '../../components/ui/Loading';
 
 export default function OwnerDashboard() {
   const { user } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <div className="p-6"><Loading /></div>;
+  }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-neutral-50 animate-fadeIn">
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-8">
           <h1 className="text-2xl font-semibold text-neutral-900 mb-1">Portfolio Overview</h1>

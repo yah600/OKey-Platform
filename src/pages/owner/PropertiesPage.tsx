@@ -1,16 +1,28 @@
+import { useState, useEffect } from 'react';
 import { Building2, Plus, Search, MapPin, Users } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Loading from '../../components/ui/Loading';
 
 export default function PropertiesPage() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
   const properties = [
     { id: 1, name: 'Sunset Apartments', address: '123 Main St, Montreal', units: 24, occupied: 24, revenue: 12400, occupancy: 100 },
     { id: 2, name: 'Downtown Plaza', address: '456 King St, Montreal', units: 18, occupied: 16, revenue: 9800, occupancy: 89 },
     { id: 3, name: 'Riverside Complex', address: '789 River Rd, Laval', units: 8, occupied: 8, revenue: 6250, occupancy: 100 },
   ];
 
+  if (isLoading) {
+    return <div className="p-6"><Loading /></div>;
+  }
+
   return (
-    <div className="p-6">
+    <div className="p-6 animate-fadeIn">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900 mb-1">Properties</h1>

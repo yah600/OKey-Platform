@@ -1,9 +1,20 @@
+import { useState, useEffect } from 'react';
 import { Wrench, Plus, Filter } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Loading from '../../components/ui/Loading';
+import EmptyState from '../../components/ui/EmptyState';
 
 export default function MaintenancePage() {
-  const requests = [
+  const [isLoading, setIsLoading] = useState(true);
+  const [showEmpty, setShowEmpty] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const requests = showEmpty ? [] : [
     { id: 1, title: 'Leaking faucet', location: 'Kitchen', priority: 'Medium', status: 'In Progress', date: '2026-01-20' },
     { id: 2, title: 'AC not cooling', location: 'Living Room', priority: 'High', status: 'Pending', date: '2026-01-22' },
     { id: 3, title: 'Door lock sticky', location: 'Front Door', priority: 'Low', status: 'Completed', date: '2026-01-15' },
@@ -22,8 +33,12 @@ export default function MaintenancePage() {
     return 'text-neutral-600';
   };
 
+  if (isLoading) {
+    return <div className="p-6"><Loading /></div>;
+  }
+
   return (
-    <div className="p-6">
+    <div className="p-6 animate-fadeIn">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900 mb-1">Maintenance</h1>
@@ -58,10 +73,14 @@ export default function MaintenancePage() {
         <Button variant="ghost" size="sm">Pending</Button>
         <Button variant="ghost" size="sm">In Progress</Button>
         <Button variant="ghost" size="sm">Completed</Button>
+        <Button variant="ghost" size="sm" onClick={() => setShowEmpty(!showEmpty)}>
+          {showEmpty ? 'Show Requests' : 'Show Empty'}
+        </Button>
       </div>
 
-      <div className="space-y-3">
-        {requests.map((request) => (
+      {requests.length > 0 ? (
+        <div className="space-y-3">
+          {requests.map((request) => (
           <Card key={request.id}>
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-3">
@@ -87,8 +106,21 @@ export default function MaintenancePage() {
               </div>
             </div>
           </Card>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <EmptyState
+            icon={Wrench}
+            title="No maintenance requests"
+            description="You don't have any maintenance requests. Submit a new request if you need repairs."
+            action={{
+              label: 'New Request',
+              onClick: () => alert('New request modal would open'),
+            }}
+          />
+        </Card>
+      )}
     </div>
   );
 }

@@ -1,8 +1,17 @@
+import { useState, useEffect } from 'react';
 import { FileText, Download, Eye } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Loading from '../../components/ui/Loading';
 
 export default function DocumentsPage() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const documents = [
     { id: 1, name: 'Lease Agreement', type: 'PDF', size: '2.4 MB', date: '2025-12-01', category: 'Lease' },
     { id: 2, name: 'Move-in Inspection', type: 'PDF', size: '1.8 MB', date: '2025-12-05', category: 'Inspection' },
@@ -10,8 +19,12 @@ export default function DocumentsPage() {
     { id: 4, name: 'Rent Receipt Jan 2026', type: 'PDF', size: '0.3 MB', date: '2026-01-01', category: 'Receipt' },
   ];
 
+  if (isLoading) {
+    return <div className="p-6"><Loading /></div>;
+  }
+
   return (
-    <div className="p-6">
+    <div className="p-6 animate-fadeIn">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-neutral-900 mb-1">Documents</h1>
         <p className="text-sm text-neutral-600">Access your lease, receipts, and important documents</p>

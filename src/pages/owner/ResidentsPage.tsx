@@ -1,16 +1,28 @@
+import { useState, useEffect } from 'react';
 import { Users, Mail, Phone, Calendar } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Loading from '../../components/ui/Loading';
 
 export default function ResidentsPage() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
   const residents = [
     { id: 1, name: 'Sarah Johnson', unit: 'Sunset Apt #4B', rent: 2500, lease: 'Dec 31, 2026', status: 'current', phone: '(514) 555-0123' },
     { id: 2, name: 'Michael Chen', unit: 'Downtown #12A', rent: 2200, lease: 'Mar 15, 2026', status: 'expiring', phone: '(514) 555-0456' },
     { id: 3, name: 'Emily Rodriguez', unit: 'Riverside #3C', rent: 1800, lease: 'Jun 30, 2027', status: 'current', phone: '(514) 555-0789' },
   ];
 
+  if (isLoading) {
+    return <div className="p-6"><Loading /></div>;
+  }
+
   return (
-    <div className="p-6">
+    <div className="p-6 animate-fadeIn">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-neutral-900 mb-1">Residents</h1>
         <p className="text-sm text-neutral-600">Manage tenants and leases</p>
