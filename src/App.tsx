@@ -13,6 +13,11 @@ import ResidentsPage from './pages/owner/ResidentsPage';
 import FinancialsPage from './pages/owner/FinancialsPage';
 import OwnerMaintenancePage from './pages/owner/OwnerMaintenancePage';
 import OwnerDocumentsPage from './pages/owner/OwnerDocumentsPage';
+import MarketplaceHome from './pages/marketplace/MarketplaceHome';
+import PropertySearch from './pages/marketplace/PropertySearch';
+import PropertyDetail from './pages/marketplace/PropertyDetail';
+import UnitDetail from './pages/marketplace/UnitDetail';
+import MyBids from './pages/marketplace/MyBids';
 
 function PrivateRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
   const { isAuthenticated, user } = useAuthStore();
@@ -48,6 +53,23 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Marketplace Routes */}
+        <Route path="/" element={<MarketplaceHome />} />
+        <Route path="/marketplace/search" element={<PropertySearch />} />
+        <Route path="/marketplace/property/:id" element={<PropertyDetail />} />
+        <Route path="/marketplace/property/:propertyId/unit/:unitId" element={<UnitDetail />} />
+
+        {/* Protected Marketplace Routes */}
+        <Route
+          path="/marketplace/my-bids"
+          element={
+            <PrivateRoute>
+              <MyBids />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardRedirect />} />
 
@@ -88,8 +110,7 @@ function App() {
           }
         />
 
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
