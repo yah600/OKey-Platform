@@ -1,11 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { TrendingUp, Clock, CheckCircle, XCircle, Calendar } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import Loading from '../../components/ui/Loading';
 
 export default function MyBids() {
   const [activeTab, setActiveTab] = useState<'active' | 'won' | 'lost' | 'expired'>('active');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 400);
+    return () => clearTimeout(timer);
+  }, []);
 
   const bids = [
     {
@@ -86,8 +93,16 @@ export default function MyBids() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <Loading />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-neutral-50 animate-fadeIn">
       {/* Header */}
       <div className="bg-white border-b border-neutral-200">
         <div className="max-w-7xl mx-auto px-6 py-4">

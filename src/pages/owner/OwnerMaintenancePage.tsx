@@ -1,16 +1,29 @@
+import { useState, useEffect } from 'react';
 import { Wrench, Filter, User } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Loading from '../../components/ui/Loading';
 
 export default function OwnerMaintenancePage() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const requests = [
     { id: 1, property: 'Sunset Apt #12A', tenant: 'Sarah Johnson', issue: 'Leaking faucet', priority: 'Medium', status: 'In Progress', date: '2026-01-20' },
     { id: 2, property: 'Downtown #5B', tenant: 'Michael Chen', issue: 'AC not cooling', priority: 'High', status: 'Pending', date: '2026-01-22' },
     { id: 3, property: 'Riverside #2C', tenant: 'Emily Rodriguez', issue: 'Door lock sticky', priority: 'Low', status: 'Completed', date: '2026-01-15' },
   ];
 
+  if (isLoading) {
+    return <div className="p-6"><Loading /></div>;
+  }
+
   return (
-    <div className="p-6">
+    <div className="p-6 animate-fadeIn">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-neutral-900 mb-1">Maintenance</h1>
         <p className="text-sm text-neutral-600">Manage maintenance requests across all properties</p>

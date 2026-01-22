@@ -1,11 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Calendar, Plus, Users, Clock, MapPin, CheckCircle, XCircle } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Loading from '../../components/ui/Loading';
 
 export default function OwnerMeetingsPage() {
   const [showNewMeetingModal, setShowNewMeetingModal] = useState(false);
   const [showVotingModal, setShowVotingModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const meetings = [
     {
@@ -79,8 +86,12 @@ export default function OwnerMeetingsPage() {
   const upcomingMeetings = meetings.filter((m) => m.status === 'upcoming');
   const activeVotes = votes.filter((v) => v.status === 'active');
 
+  if (isLoading) {
+    return <div className="p-6"><Loading /></div>;
+  }
+
   return (
-    <div className="p-6">
+    <div className="p-6 animate-fadeIn">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900 mb-1">Meetings & Voting</h1>

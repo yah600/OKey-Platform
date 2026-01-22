@@ -1,9 +1,17 @@
+import { useState, useEffect } from 'react';
 import { Search, Building2, FileText, Key, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Loading from '../../components/ui/Loading';
 
 export default function MarketplaceHome() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 400);
+    return () => clearTimeout(timer);
+  }, []);
   const featuredProperties = [
     {
       id: 1,
@@ -52,8 +60,16 @@ export default function MarketplaceHome() {
     },
   ];
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <Loading />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-neutral-50 animate-fadeIn">
       {/* Hero Section */}
       <div className="bg-neutral-900 text-white">
         <div className="max-w-7xl mx-auto px-6 py-20">

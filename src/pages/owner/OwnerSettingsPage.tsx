@@ -1,12 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Bell, CreditCard, Shield, Settings } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Loading from '../../components/ui/Loading';
 
 export default function OwnerSettingsPage() {
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'account' | 'preferences' | 'notifications' | 'billing' | 'security'>('account');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const tabs = [
     { id: 'account', label: 'Account', icon: User },
@@ -16,8 +23,12 @@ export default function OwnerSettingsPage() {
     { id: 'security', label: 'Security', icon: Shield },
   ];
 
+  if (isLoading) {
+    return <div className="p-6"><Loading /></div>;
+  }
+
   return (
-    <div className="p-6">
+    <div className="p-6 animate-fadeIn">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-neutral-900 mb-1">Settings</h1>
         <p className="text-sm text-neutral-600">Manage your account and preferences</p>

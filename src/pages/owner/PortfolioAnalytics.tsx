@@ -1,8 +1,16 @@
+import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Building2, DollarSign, Users, Calendar } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
+import Loading from '../../components/ui/Loading';
 
 export default function PortfolioAnalytics() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
   const properties = [
     {
       id: 1,
@@ -60,8 +68,12 @@ export default function PortfolioAnalytics() {
 
   const maxValue = Math.max(...monthlyData.map((d) => Math.max(d.revenue, d.expenses, d.profit)));
 
+  if (isLoading) {
+    return <div className="p-6"><Loading /></div>;
+  }
+
   return (
-    <div className="p-6">
+    <div className="p-6 animate-fadeIn">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-neutral-900 mb-1">Portfolio Analytics</h1>
