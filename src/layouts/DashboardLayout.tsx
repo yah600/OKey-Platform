@@ -20,8 +20,8 @@ import {
   HelpCircle
 } from 'lucide-react';
 import Button from '../components/ui/Button';
-import CommandPalette from '../components/global/CommandPalette';
-import NotificationsPanel from '../components/global/NotificationsPanel';
+import CommandPalette from '../components/organisms/CommandPalette';
+import NotificationsPanel from '../components/organisms/NotificationsPanel';
 
 interface DashboardLayoutProps {
   children: ReactNode;
