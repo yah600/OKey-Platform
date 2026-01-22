@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import {
@@ -14,9 +14,14 @@ import {
   BarChart3,
   Calendar,
   TrendingUp,
-  Settings
+  Settings,
+  Bell,
+  Search,
+  HelpCircle
 } from 'lucide-react';
 import Button from '../components/ui/Button';
+import CommandPalette from '../components/global/CommandPalette';
+import NotificationsPanel from '../components/global/NotificationsPanel';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -26,6 +31,21 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  // Cmd+K to open command palette
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowCommandPalette(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const tenantNav = [
     { name: 'Dashboard', path: '/tenant/dashboard', icon: Home },
@@ -33,6 +53,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: 'Maintenance', path: '/tenant/maintenance', icon: Wrench },
     { name: 'Documents', path: '/tenant/documents', icon: FileText },
     { name: 'Messages', path: '/tenant/messages', icon: Mail },
+    { name: 'Help', path: '/help', icon: HelpCircle },
   ];
 
   const ownerNav = [
@@ -45,6 +66,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: 'Meetings', path: '/owner/meetings', icon: Calendar },
     { name: 'Analytics', path: '/owner/analytics', icon: TrendingUp },
     { name: 'Settings', path: '/owner/settings', icon: Settings },
+    { name: 'Help', path: '/help', icon: HelpCircle },
   ];
 
   const navigation = user?.role === 'tenant' ? tenantNav : ownerNav;
@@ -55,7 +77,24 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       <header className="bg-white border-b border-neutral-200">
         <div className="px-6 py-4 flex items-center justify-between">
           <h1 className="text-lg font-semibold text-neutral-900">O'Key Platform</h1>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowCommandPalette(true)}
+              title="Search (⌘K)"
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowNotifications(true)}
+              title="Notifications"
+            >
+              <Bell className="w-4 h-4" />
+            </Button>
+            <div className="h-6 w-px bg-neutral-200 mx-2"></div>
             <div className="text-right">
               <p className="text-sm font-medium text-neutral-900">{user?.name}</p>
               <p className="text-xs text-neutral-500 capitalize">{user?.role}</p>
@@ -96,6 +135,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           {children}
         </main>
       </div>
+
+      {/* Global Components */}
+      <CommandPalette
+        isOpen={showCommandPalette}
+        onClose={() => setShowCommandPalette(false)}
+      />
+      <NotificationsPanel
+        isOpen={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </div>
   );
 }

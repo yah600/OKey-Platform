@@ -21,6 +21,7 @@ import PropertySearch from './pages/marketplace/PropertySearch';
 import PropertyDetail from './pages/marketplace/PropertyDetail';
 import UnitDetail from './pages/marketplace/UnitDetail';
 import MyBids from './pages/marketplace/MyBids';
+import HelpCenter from './pages/HelpCenter';
 
 function PrivateRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
   const { isAuthenticated, user } = useAuthStore();
@@ -75,6 +76,18 @@ function App() {
         {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardRedirect />} />
+
+        {/* Help Center */}
+        <Route
+          path="/help"
+          element={
+            <PrivateRoute>
+              <DashboardLayout>
+                <HelpCenter />
+              </DashboardLayout>
+            </PrivateRoute>
+          }
+        />
 
         {/* Tenant Routes */}
         <Route
