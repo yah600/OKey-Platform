@@ -3,13 +3,9 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    @apply border-neutral-200;
-  }
-
   body {
     @apply bg-neutral-50 text-neutral-900 antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -17,84 +13,22 @@
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight text-neutral-900;
   }
-
-  h1 {
-    @apply text-4xl lg:text-5xl;
-    letter-spacing: -0.02em;
-  }
-
-  h2 {
-    @apply text-3xl lg:text-4xl;
-    letter-spacing: -0.01em;
-  }
-
-  h3 {
-    @apply text-2xl lg:text-3xl;
-  }
-
-  h4 {
-    @apply text-xl lg:text-2xl;
-  }
-
-  p {
-    @apply text-neutral-600 leading-relaxed;
-  }
 }
 
 @layer utilities {
-  /* Apple-style Liquid Glass */
   .glass {
-    @apply bg-white/40 backdrop-blur-xl border border-white/20 shadow-glass;
-  }
-
-  .glass-dark {
-    @apply bg-black/20 backdrop-blur-xl border border-white/10 shadow-glass;
-  }
-
-  /* iOS-style buttons */
-  .btn-ios {
-    @apply px-6 py-3 rounded-button font-semibold transition-all duration-200 active:scale-95;
-  }
-
-  .btn-primary {
-    @apply btn-ios bg-ios-blue text-white shadow-ios hover:shadow-ios-lg;
-  }
-
-  .btn-secondary {
-    @apply btn-ios bg-white/50 backdrop-blur-md text-neutral-900 border border-white/30 hover:bg-white/70;
-  }
-
-  /* Card styles */
-  .card-glass {
-    @apply bg-white/50 backdrop-blur-md rounded-card border border-white/30 shadow-card;
-  }
-
-  .card-glass:hover {
-    @apply bg-white/60 shadow-glass;
-  }
-
-  /* Smooth scrollbar */
-  .scrollbar-thin::-webkit-scrollbar {
-    @apply w-2 h-2;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-track {
-    @apply bg-neutral-100 rounded-full;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply bg-neutral-300 rounded-full hover:bg-neutral-400;
+    @apply bg-white/80 backdrop-blur-sm border border-neutral-200/50;
   }
 }
 
-/* Global scrollbar */
+/* Minimal scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-neutral-100;
+  @apply bg-transparent;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -105,12 +39,7 @@
   @apply bg-neutral-400;
 }
 
-/* Focus styles */
+/* Clean focus */
 *:focus-visible {
-  @apply outline-none ring-2 ring-ios-blue ring-offset-2;
-}
-
-/* Selection */
-::selection {
-  @apply bg-ios-blue/20 text-ios-blue;
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2;
 }

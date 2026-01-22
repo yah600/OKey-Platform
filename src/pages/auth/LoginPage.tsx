@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
 import { Mail, Lock } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../../components/ui/Button';
@@ -11,7 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
 
@@ -21,84 +20,82 @@ export default function LoginPage() {
     setLoading(true);
 
     const success = await login(email, password);
-    
+
     if (success) {
       navigate('/marketplace');
     } else {
-      setError('Invalid email or password');
+      setError('Invalid credentials');
     }
-    
+
     setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-ios-blue/10 via-neutral-50 to-ios-purple/10 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md"
-      >
-        <Card variant="glass" padding="lg">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-ios-blue to-ios-purple bg-clip-text text-transparent">
-              O'Key Platform
-            </h1>
-            <p className="text-neutral-600">Sign in to your account</p>
-          </div>
+    <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-semibold text-neutral-900 mb-2">
+            O'Key Platform
+          </h1>
+          <p className="text-sm text-neutral-600">Sign in to continue</p>
+        </div>
 
+        <Card>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-button bg-white/50 backdrop-blur-sm border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-ios-blue"
-                  placeholder="your@email.com"
+                  className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="you@company.com"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
+              <label className="block text-sm font-medium text-neutral-700 mb-1.5">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-5 h-5" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-button bg-white/50 backdrop-blur-sm border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-ios-blue"
-                  placeholder="••••••••"
+                  className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Enter your password"
                   required
                 />
               </div>
             </div>
 
             {error && (
-              <div className="p-3 bg-ios-red/10 border border-ios-red/20 rounded-button text-ios-red text-sm">
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
                 {error}
               </div>
             )}
 
             <Button type="submit" variant="primary" className="w-full" loading={loading}>
-              Sign In
+              Sign in
             </Button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-neutral-600">
-            <p className="mb-2">Demo Accounts:</p>
-            <p>Tenant: tenant@okey.com / tenant123</p>
-            <p>Owner: owner@okey.com / owner123</p>
+          <div className="mt-6 pt-6 border-t border-neutral-200">
+            <p className="text-xs text-neutral-500 text-center mb-2">Demo accounts</p>
+            <div className="space-y-1 text-xs text-neutral-600">
+              <p>tenant@okey.com / tenant123</p>
+              <p>owner@okey.com / owner123</p>
+            </div>
           </div>
         </Card>
-      </motion.div>
+      </div>
     </div>
   );
 }

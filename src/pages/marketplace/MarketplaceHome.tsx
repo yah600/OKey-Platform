@@ -1,5 +1,4 @@
-import { motion } from 'motion/react';
-import { Building2, DollarSign, Users } from 'lucide-react';
+import { Building2, DollarSign, Users, LogOut } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
@@ -8,21 +7,21 @@ export default function MarketplaceHome() {
   const { user, logout } = useAuthStore();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-neutral-100 to-neutral-200">
+    <div className="min-h-screen bg-neutral-50">
       {/* Header */}
-      <header className="bg-white/50 backdrop-blur-md border-b border-white/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-ios-blue to-ios-purple bg-clip-text text-transparent">
+      <header className="bg-white border-b border-neutral-200">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <h1 className="text-lg font-semibold text-neutral-900">
             O'Key Platform
           </h1>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {user && (
               <>
                 <span className="text-sm text-neutral-600">
-                  Welcome, {user.name}
+                  {user.name}
                 </span>
                 <Button variant="ghost" size="sm" onClick={logout}>
-                  Logout
+                  <LogOut className="w-4 h-4" />
                 </Button>
               </>
             )}
@@ -31,77 +30,54 @@ export default function MarketplaceHome() {
       </header>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h2 className="text-5xl font-bold mb-4">Find Your Perfect Property</h2>
-          <p className="text-xl text-neutral-600">Revolutionary all-in-one real estate platform</p>
-        </motion.div>
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="mb-12">
+          <h2 className="text-3xl font-semibold text-neutral-900 mb-2">Dashboard</h2>
+          <p className="text-neutral-600">Manage your properties and track performance</p>
+        </div>
 
-        {/* Feature Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           {[
-            { icon: Building2, title: 'Properties', count: '1,234', color: 'ios-blue' },
-            { icon: DollarSign, title: 'Avg. Rent', count: '$2,500', color: 'ios-green' },
-            { icon: Users, title: 'Happy Tenants', count: '5,678', color: 'ios-purple' },
-          ].map((stat, index) => (
-            <motion.div
-              key={stat.title}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card variant="glass" hover>
-                <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-ios bg-${stat.color}/10`}>
-                    <stat.icon className={`w-6 h-6 text-${stat.color}`} />
+            { icon: Building2, label: 'Properties', value: '12', change: '+2 this month' },
+            { icon: DollarSign, label: 'Revenue', value: '$28,450', change: '+12% from last month' },
+            { icon: Users, label: 'Tenants', value: '48', change: '96% occupancy' },
+          ].map((stat) => (
+            <Card key={stat.label} padding="sm">
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <stat.icon className="w-4 h-4 text-neutral-500" />
+                    <p className="text-sm text-neutral-600">{stat.label}</p>
                   </div>
-                  <div>
-                    <p className="text-sm text-neutral-600">{stat.title}</p>
-                    <p className="text-2xl font-bold">{stat.count}</p>
-                  </div>
+                  <p className="text-2xl font-semibold text-neutral-900 mb-1">{stat.value}</p>
+                  <p className="text-xs text-neutral-500">{stat.change}</p>
                 </div>
-              </Card>
-            </motion.div>
+              </div>
+            </Card>
           ))}
         </div>
 
-        {/* CTA */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="text-center"
-        >
-          <Card variant="glass" padding="lg" className="inline-block">
-            <h3 className="text-2xl font-bold mb-4">Ready to Get Started?</h3>
-            <p className="text-neutral-600 mb-6">
-              Join thousands of property owners and tenants using O'Key
-            </p>
-            <div className="flex gap-4 justify-center">
-              <Button variant="primary">Browse Properties</Button>
-              <Button variant="secondary">List Your Property</Button>
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* Status */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="mt-12 text-center"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-ios-green/20 backdrop-blur-sm rounded-full border border-ios-green/30">
-            <div className="w-2 h-2 rounded-full bg-ios-green animate-pulse" />
-            <span className="text-sm font-medium text-ios-green">
-              ✨ New Liquid Glass Design • Rebuilt from Scratch
-            </span>
+        {/* Quick Actions */}
+        <Card>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-neutral-900">Quick Actions</h3>
           </div>
-        </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Button variant="secondary" className="justify-start">
+              Browse Properties
+            </Button>
+            <Button variant="secondary" className="justify-start">
+              List a Property
+            </Button>
+            <Button variant="secondary" className="justify-start">
+              View Reports
+            </Button>
+            <Button variant="secondary" className="justify-start">
+              Manage Tenants
+            </Button>
+          </div>
+        </Card>
       </div>
     </div>
   );
