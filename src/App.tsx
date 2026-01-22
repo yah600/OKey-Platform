@@ -17,12 +17,15 @@ import OwnerDocumentsPage from './pages/owner/OwnerDocumentsPage';
 import OwnerMeetingsPage from './pages/owner/OwnerMeetingsPage';
 import OwnerSettingsPage from './pages/owner/OwnerSettingsPage';
 import PortfolioAnalytics from './pages/owner/PortfolioAnalytics';
+import PropertyDetailPage from './pages/owner/PropertyDetailPage';
 import MarketplaceHome from './pages/marketplace/MarketplaceHome';
 import PropertySearch from './pages/marketplace/PropertySearch';
 import PropertyDetail from './pages/marketplace/PropertyDetail';
 import UnitDetail from './pages/marketplace/UnitDetail';
 import MyBids from './pages/marketplace/MyBids';
 import HelpCenter from './pages/HelpCenter';
+import NotFound from './pages/errors/NotFound';
+import AccessDenied from './pages/errors/AccessDenied';
 
 function PrivateRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
   const { isAuthenticated, user } = useAuthStore();
@@ -118,6 +121,7 @@ function App() {
                 <Routes>
                   <Route path="dashboard" element={<OwnerDashboard />} />
                   <Route path="properties" element={<PropertiesPage />} />
+                  <Route path="properties/:id" element={<PropertyDetailPage />} />
                   <Route path="residents" element={<ResidentsPage />} />
                   <Route path="financials" element={<FinancialsPage />} />
                   <Route path="maintenance" element={<OwnerMaintenancePage />} />
@@ -131,7 +135,9 @@ function App() {
           }
         />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Error Routes */}
+        <Route path="/403" element={<AccessDenied />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
