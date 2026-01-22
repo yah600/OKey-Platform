@@ -1,92 +1,58 @@
-import * as React from "react";
+import { HTMLAttributes, forwardRef } from 'react';
+import { motion } from 'motion/react';
 
-import { cn } from "./utils";
-
-function Card({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card"
-      className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border",
-        className,
-      )}
-      {...props}
-    />
-  );
+interface CardProps extends HTMLAttributes<HTMLDivElement> {
+  variant?: 'default' | 'glass' | 'elevated';
+  hover?: boolean;
+  padding?: 'none' | 'sm' | 'md' | 'lg';
 }
 
-function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-header"
-      className={cn(
-        "@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 pt-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+const Card = forwardRef<HTMLDivElement, CardProps>(
+  (
+    {
+      variant = 'default',
+      hover = false,
+      padding = 'md',
+      className = '',
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    const variants = {
+      default: 'bg-white border border-neutral-200 shadow-card',
+      glass: 'bg-white/50 backdrop-blur-md border border-white/30 shadow-glass',
+      elevated: 'bg-white shadow-glass-lg border-none',
+    };
 
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <h4
-      data-slot="card-title"
-      className={cn("leading-none", className)}
-      {...props}
-    />
-  );
-}
+    const paddings = {
+      none: '',
+      sm: 'p-4',
+      md: 'p-6',
+      lg: 'p-8',
+    };
 
-function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <p
-      data-slot="card-description"
-      className={cn("text-muted-foreground", className)}
-      {...props}
-    />
-  );
-}
+    const Component = hover ? motion.div : 'div';
+    const hoverProps = hover
+      ? {
+          whileHover: { scale: 1.02, y: -4 },
+          transition: { type: 'spring', stiffness: 300, damping: 20 },
+        }
+      : {};
 
-function CardAction({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-action"
-      className={cn(
-        "col-start-2 row-span-2 row-start-1 self-start justify-self-end",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
+    return (
+      <Component
+        ref={ref}
+        className={`rounded-card ${variants[variant]} ${paddings[padding]} transition-all duration-200 ${className}`}
+        {...hoverProps}
+        {...props}
+      >
+        {children}
+      </Component>
+    );
+  }
+);
 
-function CardContent({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-content"
-      className={cn("px-6 [&:last-child]:pb-6", className)}
-      {...props}
-    />
-  );
-}
+Card.displayName = 'Card';
 
-function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="card-footer"
-      className={cn("flex items-center px-6 pb-6 [.border-t]:pt-6", className)}
-      {...props}
-    />
-  );
-}
-
-export {
-  Card,
-  CardHeader,
-  CardFooter,
-  CardTitle,
-  CardAction,
-  CardDescription,
-  CardContent,
-};
+export default Card;
