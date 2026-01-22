@@ -1,13 +1,25 @@
+import { useState, useEffect } from 'react';
 import { DollarSign, Wrench, FileText, Mail, Calendar, Home } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Loading from '../../components/ui/Loading';
 
 export default function TenantDashboard() {
   const { user } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <div className="p-6"><Loading /></div>;
+  }
 
   return (
-    <div className="p-6">
+    <div className="p-6 animate-fadeIn">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-neutral-900 mb-1">Welcome back, {user?.name}</h1>
         <p className="text-sm text-neutral-600">Here's what's happening with your rental</p>

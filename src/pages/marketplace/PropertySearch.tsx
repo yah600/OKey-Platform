@@ -1,14 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal, MapPin, Building2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
+import Loading from '../../components/ui/Loading';
+import EmptyState from '../../components/ui/EmptyState';
 
 export default function PropertySearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [propertyType, setPropertyType] = useState('all');
   const [priceRange, setPriceRange] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const properties = [
     {
@@ -79,8 +87,28 @@ export default function PropertySearch() {
     },
   ];
 
+  const filteredProperties = properties.filter((property) => {
+    const matchesSearch = property.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         property.address.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = propertyType === 'all' || property.type.toLowerCase() === propertyType;
+    return matchesSearch && matchesType;
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-neutral-50">
+        <div className="bg-white border-b border-neutral-200">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <Link to="/" className="text-lg font-semibold text-neutral-900">O'Key Platform</Link>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-6 py-8"><Loading /></div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-neutral-50 animate-fadeIn">
       {/* Header */}
       <div className="bg-white border-b border-neutral-200">
         <div className="max-w-7xl mx-auto px-6 py-4">
@@ -165,12 +193,13 @@ export default function PropertySearch() {
             </Card>
           )}
 
-          <p className="text-sm text-neutral-600">{properties.length} properties found</p>
+          <p className="text-sm text-neutral-600">{filteredProperties.length} properties found</p>
         </div>
 
         {/* Property Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {properties.map((property) => (
+        {filteredProperties.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredProperties.map((property) => (
             <Link key={property.id} to={`/marketplace/property/${property.id}`}>
               <Card padding="none" className="hover:border-neutral-300 transition-colors cursor-pointer overflow-hidden h-full">
                 <div className="aspect-video bg-neutral-200 overflow-hidden relative">
@@ -211,27 +240,46 @@ export default function PropertySearch() {
                 </div>
               </Card>
             </Link>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <Card className="mt-6">
+            <EmptyState
+              icon={Building2}
+              title="No properties found"
+              description="Try adjusting your search filters to find more properties."
+              action={{
+                label: 'Clear Filters',
+                onClick: () => {
+                  setSearchQuery('');
+                  setPropertyType('all');
+                  setPriceRange('all');
+                },
+              }}
+            />
+          </Card>
+        )}
 
         {/* Pagination */}
-        <div className="mt-8 flex items-center justify-center gap-2">
-          <Button variant="secondary" size="sm" disabled>
-            Previous
-          </Button>
-          <Button variant="primary" size="sm">
-            1
-          </Button>
-          <Button variant="secondary" size="sm">
-            2
-          </Button>
-          <Button variant="secondary" size="sm">
-            3
-          </Button>
-          <Button variant="secondary" size="sm">
-            Next
-          </Button>
-        </div>
+        {filteredProperties.length > 0 && (
+          <div className="mt-8 flex items-center justify-center gap-2">
+            <Button variant="secondary" size="sm" disabled>
+              Previous
+            </Button>
+            <Button variant="primary" size="sm">
+              1
+            </Button>
+            <Button variant="secondary" size="sm">
+              2
+            </Button>
+            <Button variant="secondary" size="sm">
+              3
+            </Button>
+            <Button variant="secondary" size="sm">
+              Next
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
