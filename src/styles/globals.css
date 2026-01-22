@@ -15,12 +15,6 @@
   }
 }
 
-@layer utilities {
-  .glass {
-    @apply bg-white/80 backdrop-blur-sm border border-neutral-200/50;
-  }
-}
-
 /* Minimal scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -28,7 +22,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-transparent;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -41,5 +35,6 @@
 
 /* Clean focus */
 *:focus-visible {
-  @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+  outline: none;
+  box-shadow: 0 0 0 2px white, 0 0 0 4px #0ea5e9;
 }
