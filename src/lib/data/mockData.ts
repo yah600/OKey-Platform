@@ -1,5 +1,4 @@
-// Mock data for OKey Platform
-import type { Property, Unit, User, Bid, Lease, MaintenanceRequest, Payment } from '@/types';
+import type { User, Property, Unit, Bid, Lease, Transaction, Bill, Issue, MaintenanceTask, Document, Meeting, Vote, VoteRecord, Message, Conversation, Notification } from '@/types';
 
 // ============================================================================
 // MOCK USERS
@@ -8,76 +7,63 @@ import type { Property, Unit, User, Bid, Lease, MaintenanceRequest, Payment } fr
 export const mockUsers: User[] = [
   {
     id: 'user-1',
-    email: 'admin@okey.com',
-    name: 'Alexandre Dupont',
-    role: 'super_admin',
-    verified: true,
-    okeyScore: 850,
-    scoreBreakdown: {
-      paymentHistory: 850,
-      rentalDuration: 850,
-      incomeVerification: 850,
-      references: 850,
-      identityVerification: 850,
-    },
-    createdAt: '2024-01-01T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
+    email: 'tenant@okey.com',
+    full_name: 'Jean Tremblay',
+    phone: '514-555-0123',
+    role: 'tenant',
+    okey_score: 85,
+    avatar_url: '',
+    status: 'active',
+    created_at: '2025-01-15T10:00:00Z',
+    updated_at: '2025-01-15T10:00:00Z',
   },
   {
     id: 'user-2',
     email: 'owner@okey.com',
-    name: 'Marie Dubois',
+    full_name: 'Marie Dupont',
+    phone: '514-555-0456',
     role: 'owner',
-    phone: '(514) 555-0100',
-    verified: true,
-    okeyScore: 810,
-    propertyIds: ['prop-1', 'prop-2'],
-    scoreBreakdown: {
-      paymentHistory: 820,
-      rentalDuration: 800,
-      incomeVerification: 810,
-      references: 805,
-      identityVerification: 850,
-    },
-    createdAt: '2024-02-01T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
+    okey_score: null,
+    avatar_url: '',
+    status: 'active',
+    created_at: '2024-06-20T10:00:00Z',
+    updated_at: '2024-06-20T10:00:00Z',
   },
   {
     id: 'user-3',
-    email: 'tenant@okey.com',
-    name: 'Jean Tremblay',
-    role: 'tenant',
-    phone: '(514) 555-0200',
-    verified: true,
-    okeyScore: 720,
-    unitIds: ['unit-1'],
-    scoreBreakdown: {
-      paymentHistory: 750,
-      rentalDuration: 680,
-      incomeVerification: 740,
-      references: 710,
-      identityVerification: 800,
-    },
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
+    email: 'admin@okey.com',
+    full_name: 'Admin User',
+    phone: '514-555-9999',
+    role: 'super_admin',
+    okey_score: null,
+    avatar_url: '',
+    status: 'active',
+    created_at: '2024-01-01T10:00:00Z',
+    updated_at: '2024-01-01T10:00:00Z',
   },
   {
     id: 'user-4',
-    email: 'bidder@okey.com',
-    name: 'Sophie Gagnon',
+    email: 'manager@okey.com',
+    full_name: 'Pierre Gagnon',
+    phone: '514-555-0789',
+    role: 'property_manager',
+    okey_score: null,
+    avatar_url: '',
+    status: 'active',
+    created_at: '2024-03-10T10:00:00Z',
+    updated_at: '2024-03-10T10:00:00Z',
+  },
+  {
+    id: 'user-5',
+    email: 'tenant2@okey.com',
+    full_name: 'Sophie Martin',
+    phone: '514-555-1111',
     role: 'tenant',
-    phone: '(514) 555-0300',
-    verified: true,
-    okeyScore: 680,
-    scoreBreakdown: {
-      paymentHistory: 700,
-      rentalDuration: 650,
-      incomeVerification: 720,
-      references: 660,
-      identityVerification: 750,
-    },
-    createdAt: '2025-06-01T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
+    okey_score: 72,
+    avatar_url: '',
+    status: 'active',
+    created_at: '2025-02-01T10:00:00Z',
+    updated_at: '2025-02-01T10:00:00Z',
   },
 ];
 
@@ -88,313 +74,50 @@ export const mockUsers: User[] = [
 export const mockProperties: Property[] = [
   {
     id: 'prop-1',
-    buildingName: 'The Maxwell',
-    address: '1200 Rue Saint-Antoine Ouest',
-    city: 'Montreal',
-    province: 'QC',
-    postalCode: 'H3C 1B5',
-    country: 'Canada',
-    lat: 45.4972,
-    lng: -73.5664,
-    yearBuilt: 2018,
-    totalUnits: 120,
-    availableUnits: 8,
-    occupancyRate: 93,
-    ownerId: 'user-2',
-    ownerName: 'Marie Dubois',
-    ownerScore: 810,
-    amenities: ['Gym', 'Pool', 'Parking', 'Concierge', 'Rooftop Terrace', '24/7 Security'],
-    description: 'Luxury high-rise in the heart of downtown Montreal with stunning city views and premium amenities. Modern design with floor-to-ceiling windows, smart home technology, and access to world-class facilities.',
-    images: [
+    owner_id: 'user-2',
+    manager_id: 'user-4',
+    name: 'Le Maxwell',
+    address: {
+      street: '1455 Rue Drummond',
+      city: 'Montreal',
+      province: 'QC',
+      postal_code: 'H3G 1W3',
+      country: 'Canada',
+    },
+    property_type: 'condo',
+    total_units: 24,
+    year_built: 2018,
+    amenities: ['gym', 'pool', 'rooftop', 'parking', 'doorman', 'lounge'],
+    photos: [
       'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800',
       'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800',
     ],
-    buildingScore: 782,
-    verified: true,
-    priceRange: '$1,800 - $3,500',
-    createdAt: '2024-01-15T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
+    status: 'active',
+    created_at: '2024-06-20T10:00:00Z',
+    updated_at: '2024-06-20T10:00:00Z',
   },
   {
     id: 'prop-2',
-    buildingName: 'Riverside Commons',
-    address: '88 Rue de la Commune Est',
-    city: 'Montreal',
-    province: 'QC',
-    postalCode: 'H2Y 1J1',
-    country: 'Canada',
-    lat: 45.5017,
-    lng: -73.5540,
-    yearBuilt: 2020,
-    totalUnits: 85,
-    availableUnits: 3,
-    occupancyRate: 96,
-    ownerId: 'user-2',
-    ownerName: 'Marie Dubois',
-    ownerScore: 810,
-    amenities: ['Gym', 'Bike Storage', 'Pet-friendly', 'Co-working Space', 'EV Charging'],
-    description: 'Modern waterfront living with eco-friendly design and smart home technology. Steps from Old Montreal, featuring sustainable building materials and energy-efficient systems.',
-    images: [
-      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800',
-      'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800',
-    ],
-    buildingScore: 745,
-    verified: true,
-    priceRange: '$2,200 - $4,200',
-    createdAt: '2024-03-01T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  {
-    id: 'prop-3',
-    buildingName: 'Heritage Lofts',
-    address: '425 Rue McGill',
-    city: 'Montreal',
-    province: 'QC',
-    postalCode: 'H2Y 2G1',
-    country: 'Canada',
-    lat: 45.5007,
-    lng: -73.5550,
-    yearBuilt: 1910,
-    totalUnits: 45,
-    availableUnits: 2,
-    occupancyRate: 95,
-    ownerId: 'user-2',
-    ownerName: 'Marie Dubois',
-    ownerScore: 810,
-    amenities: ['Historic Building', 'Exposed Brick', 'High Ceilings', 'Parking'],
-    description: 'Beautifully restored heritage building with modern amenities. Original architectural details preserved including exposed brick, hardwood floors, and oversized windows.',
-    images: [
+    owner_id: 'user-2',
+    manager_id: 'user-4',
+    name: 'Riverside Commons',
+    address: {
+      street: '2500 Rue Notre-Dame',
+      city: 'Montreal',
+      province: 'QC',
+      postal_code: 'H3K 1X5',
+      country: 'Canada',
+    },
+    property_type: 'apartment',
+    total_units: 48,
+    year_built: 2015,
+    amenities: ['gym', 'parking', 'storage', 'bike_room'],
+    photos: [
       'https://images.unsplash.com/photo-1460317442991-0ec209397118?w=800',
     ],
-    buildingScore: 710,
-    verified: true,
-    priceRange: '$1,600 - $3,200',
-    createdAt: '2024-04-15T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  {
-    id: 'prop-4',
-    buildingName: 'Skyline Tower',
-    address: '2000 Avenue McGill College',
-    city: 'Montreal',
-    province: 'QC',
-    postalCode: 'H3A 1G1',
-    country: 'Canada',
-    lat: 45.5043,
-    lng: -73.5759,
-    yearBuilt: 2022,
-    totalUnits: 200,
-    availableUnits: 12,
-    occupancyRate: 94,
-    ownerId: 'user-2',
-    ownerName: 'Marie Dubois',
-    ownerScore: 810,
-    amenities: ['Infinity Pool', 'Spa', 'Sky Lounge', 'Valet Parking', 'Pet Spa', 'Wine Cellar', 'Theater Room'],
-    description: 'Ultra-luxury residential tower with unparalleled amenities and breathtaking views. Features smart building technology, concierge services, and exclusive resident-only facilities.',
-    images: [
-      'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800',
-    ],
-    buildingScore: 825,
-    verified: true,
-    priceRange: '$2,800 - $6,500',
-    createdAt: '2024-05-01T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  {
-    id: 'prop-5',
-    buildingName: 'Le Plateau Moderne',
-    address: '4567 Rue Saint-Denis',
-    city: 'Montreal',
-    province: 'QC',
-    postalCode: 'H2J 2L3',
-    country: 'Canada',
-    lat: 45.5226,
-    lng: -73.5812,
-    yearBuilt: 2019,
-    totalUnits: 68,
-    availableUnits: 5,
-    occupancyRate: 93,
-    ownerId: 'user-2',
-    ownerName: 'Marie Dubois',
-    ownerScore: 810,
-    amenities: ['Rooftop Garden', 'Bike Storage', 'Pet-friendly', 'Co-working Space'],
-    description: 'Contemporary mid-rise in vibrant Plateau neighborhood. Walking distance to trendy cafes, boutiques, and parks. Perfect for urban lifestyle enthusiasts.',
-    images: [
-      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800',
-    ],
-    buildingScore: 758,
-    verified: true,
-    priceRange: '$1,600 - $2,900',
-    createdAt: '2024-06-10T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  {
-    id: 'prop-6',
-    buildingName: 'Griffintown Lofts',
-    address: '1050 Rue Notre-Dame Ouest',
-    city: 'Montreal',
-    province: 'QC',
-    postalCode: 'H3C 6R6',
-    country: 'Canada',
-    lat: 45.4932,
-    lng: -73.5629,
-    yearBuilt: 2017,
-    totalUnits: 92,
-    availableUnits: 7,
-    occupancyRate: 92,
-    ownerId: 'user-2',
-    ownerName: 'Marie Dubois',
-    ownerScore: 810,
-    amenities: ['Gym', 'Common Room', 'Bike Storage', 'EV Charging', 'Storage Lockers'],
-    description: 'Industrial-chic lofts in trendy Griffintown. Exposed concrete, high ceilings, and modern finishes create unique urban living spaces.',
-    images: [
-      'https://images.unsplash.com/photo-1460317442991-0ec209397118?w=800',
-    ],
-    buildingScore: 732,
-    verified: true,
-    priceRange: '$1,900 - $3,400',
-    createdAt: '2024-07-01T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  {
-    id: 'prop-7',
-    buildingName: 'Westmount Residences',
-    address: '325 Avenue Clarke',
-    city: 'Westmount',
-    province: 'QC',
-    postalCode: 'H3Z 2E5',
-    country: 'Canada',
-    lat: 45.4829,
-    lng: -73.5963,
-    yearBuilt: 2015,
-    totalUnits: 56,
-    availableUnits: 4,
-    occupancyRate: 93,
-    ownerId: 'user-2',
-    ownerName: 'Marie Dubois',
-    ownerScore: 810,
-    amenities: ['Concierge', 'Indoor Pool', 'Sauna', 'Private Gardens', 'Guest Suites'],
-    description: 'Prestigious address in exclusive Westmount. Elegant architecture with sophisticated interiors and access to top schools and parks.',
-    images: [
-      'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800',
-    ],
-    buildingScore: 795,
-    verified: true,
-    priceRange: '$2,500 - $5,200',
-    createdAt: '2024-08-05T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  {
-    id: 'prop-8',
-    buildingName: 'Canal View Apartments',
-    address: '789 Rue Wellington',
-    city: 'Montreal',
-    province: 'QC',
-    postalCode: 'H3C 1V5',
-    country: 'Canada',
-    lat: 45.4871,
-    lng: -73.5608,
-    yearBuilt: 2020,
-    totalUnits: 78,
-    availableUnits: 6,
-    occupancyRate: 92,
-    ownerId: 'user-2',
-    ownerName: 'Marie Dubois',
-    ownerScore: 810,
-    amenities: ['Gym', 'Bike Storage', 'Rooftop Patio', 'EV Charging', 'Package Room'],
-    description: 'Modern apartments overlooking Lachine Canal. Perfect for active lifestyles with direct access to bike paths and waterfront parks.',
-    images: [
-      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800',
-    ],
-    buildingScore: 741,
-    verified: true,
-    priceRange: '$1,700 - $3,100',
-    createdAt: '2024-09-12T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  {
-    id: 'prop-9',
-    buildingName: 'Mile End Studios',
-    address: '5678 Boulevard Saint-Laurent',
-    city: 'Montreal',
-    province: 'QC',
-    postalCode: 'H2T 1S1',
-    country: 'Canada',
-    lat: 45.5210,
-    lng: -73.5990,
-    yearBuilt: 2021,
-    totalUnits: 44,
-    availableUnits: 3,
-    occupancyRate: 93,
-    ownerId: 'user-2',
-    ownerName: 'Marie Dubois',
-    ownerScore: 810,
-    amenities: ['Co-working Space', 'Bike Storage', 'Pet-friendly', 'Rooftop Terrace'],
-    description: 'Artsy neighborhood living in the heart of Mile End. Close to music venues, galleries, and eclectic dining. Perfect for creative professionals.',
-    images: [
-      'https://images.unsplash.com/photo-1460317442991-0ec209397118?w=800',
-    ],
-    buildingScore: 715,
-    verified: true,
-    priceRange: '$1,400 - $2,600',
-    createdAt: '2024-10-01T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  {
-    id: 'prop-10',
-    buildingName: 'Downtown Executive Suites',
-    address: '1500 Avenue du Docteur-Penfield',
-    city: 'Montreal',
-    province: 'QC',
-    postalCode: 'H3G 1B9',
-    country: 'Canada',
-    lat: 45.5030,
-    lng: -73.5802,
-    yearBuilt: 2018,
-    totalUnits: 110,
-    availableUnits: 9,
-    occupancyRate: 92,
-    ownerId: 'user-2',
-    ownerName: 'Marie Dubois',
-    ownerScore: 810,
-    amenities: ['Business Center', 'Gym', 'Concierge', 'Meeting Rooms', 'Dry Cleaning'],
-    description: 'Corporate housing and executive rentals in prime downtown location. Fully furnished units available with flexible lease terms.',
-    images: [
-      'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800',
-    ],
-    buildingScore: 770,
-    verified: true,
-    priceRange: '$2,100 - $4,800',
-    createdAt: '2024-11-05T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  {
-    id: 'prop-11',
-    buildingName: 'Green Eco Residences',
-    address: '2345 Rue Sherbrooke Est',
-    city: 'Montreal',
-    province: 'QC',
-    postalCode: 'H2K 1E6',
-    country: 'Canada',
-    lat: 45.5361,
-    lng: -73.5537,
-    yearBuilt: 2023,
-    totalUnits: 65,
-    availableUnits: 8,
-    occupancyRate: 88,
-    ownerId: 'user-2',
-    ownerName: 'Marie Dubois',
-    ownerScore: 810,
-    amenities: ['Solar Panels', 'Green Roof', 'Composting', 'EV Charging', 'Rainwater Harvesting'],
-    description: 'LEED Platinum certified eco-friendly building. Sustainable living with zero-waste initiatives, energy-efficient systems, and community gardens.',
-    images: [
-      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800',
-    ],
-    buildingScore: 785,
-    verified: true,
-    priceRange: '$1,800 - $3,600',
-    createdAt: '2024-12-01T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
+    status: 'active',
+    created_at: '2024-06-20T10:00:00Z',
+    updated_at: '2024-06-20T10:00:00Z',
   },
 ];
 
@@ -403,382 +126,94 @@ export const mockProperties: Property[] = [
 // ============================================================================
 
 export const mockUnits: Unit[] = [
-  // The Maxwell Units
   {
     id: 'unit-1',
-    propertyId: 'prop-1',
-    unitNumber: '4B',
-    floor: 4,
+    property_id: 'prop-1',
+    unit_number: '305',
+    floor: 3,
+    unit_type: '2BR',
     bedrooms: 2,
-    bathrooms: 2,
-    sqft: 1200,
-    type: 'rent',
-    askingPrice: 2400,
-    currentBid: 2450,
-    buyNowPrice: 2600,
-    auctionActive: true,
-    auctionEndsAt: '2026-01-25T23:59:59Z',
-    totalBids: 5,
-    minScore: 650,
-    availableDate: '2026-02-01',
+    bathrooms: 1.5,
+    square_feet: 950,
+    monthly_rent: 2100,
     status: 'available',
-    features: [
-      'Hardwood Floors',
-      'Granite Countertops',
-      'In-Unit Laundry',
-      'Balcony',
-      'Dishwasher',
-      'Central AC',
-    ],
-    images: [
+    available_date: '2026-02-01',
+    pet_friendly: true,
+    parking_spaces: 1,
+    utilities_included: ['heating', 'hot_water'],
+    photos: [
       'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
       'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800',
     ],
-    description: 'Bright and spacious 2-bedroom unit with stunning city views.',
-    createdAt: '2024-01-15T00:00:00Z',
-    updatedAt: '2026-01-21T12:00:00Z',
+    floor_plan_url: 'https://images.unsplash.com/photo-1503174971373-b1f69850bded?w=600',
+    created_at: '2024-06-20T10:00:00Z',
+    updated_at: '2024-06-20T10:00:00Z',
   },
   {
     id: 'unit-2',
-    propertyId: 'prop-1',
-    unitNumber: '12A',
-    floor: 12,
+    property_id: 'prop-1',
+    unit_number: '412',
+    floor: 4,
+    unit_type: '1BR',
     bedrooms: 1,
     bathrooms: 1,
-    sqft: 850,
-    type: 'rent',
-    askingPrice: 1800,
-    currentBid: 1850,
-    auctionActive: true,
-    auctionEndsAt: '2026-01-28T23:59:59Z',
-    totalBids: 3,
-    minScore: 600,
-    availableDate: '2026-02-15',
-    status: 'available',
-    features: ['Hardwood Floors', 'In-Unit Laundry', 'Balcony', 'Dishwasher'],
-    images: [
-      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800',
+    square_feet: 650,
+    monthly_rent: 1650,
+    status: 'occupied',
+    available_date: null,
+    pet_friendly: false,
+    parking_spaces: 0,
+    utilities_included: ['heating', 'hot_water'],
+    photos: [
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800',
     ],
-    description: 'Cozy 1-bedroom with beautiful views of downtown.',
-    createdAt: '2024-02-01T00:00:00Z',
-    updatedAt: '2026-01-21T10:00:00Z',
+    floor_plan_url: null,
+    created_at: '2024-06-20T10:00:00Z',
+    updated_at: '2024-06-20T10:00:00Z',
   },
   {
     id: 'unit-3',
-    propertyId: 'prop-1',
-    unitNumber: '18C',
-    floor: 18,
+    property_id: 'prop-1',
+    unit_number: '508',
+    floor: 5,
+    unit_type: '3BR',
     bedrooms: 3,
-    bathrooms: 2.5,
-    sqft: 1800,
-    type: 'rent',
-    askingPrice: 3200,
-    buyNowPrice: 3500,
-    auctionActive: false,
-    totalBids: 0,
-    minScore: 700,
-    availableDate: '2026-03-01',
+    bathrooms: 2,
+    square_feet: 1200,
+    monthly_rent: 2800,
     status: 'available',
-    features: [
-      'Hardwood Floors',
-      'Granite Countertops',
-      'In-Unit Laundry',
-      'Large Balcony',
-      'Walk-in Closet',
-      'Dishwasher',
-      'Central AC',
-      'Floor-to-Ceiling Windows',
+    available_date: '2026-02-15',
+    pet_friendly: true,
+    parking_spaces: 2,
+    utilities_included: ['heating', 'hot_water'],
+    photos: [
+      'https://images.unsplash.com/photo-1560448204-603b3fc33ddc?w=800',
     ],
-    images: [
-      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800',
-    ],
-    description: 'Luxurious 3-bedroom penthouse-style unit with panoramic views.',
-    createdAt: '2024-03-01T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
+    floor_plan_url: null,
+    created_at: '2024-06-20T10:00:00Z',
+    updated_at: '2024-06-20T10:00:00Z',
   },
-  // Riverside Commons Units
   {
     id: 'unit-4',
-    propertyId: 'prop-2',
-    unitNumber: '3A',
-    floor: 3,
-    bedrooms: 2,
-    bathrooms: 2,
-    sqft: 1100,
-    type: 'rent',
-    askingPrice: 2200,
-    currentBid: 2300,
-    auctionActive: true,
-    auctionEndsAt: '2026-01-26T23:59:59Z',
-    totalBids: 7,
-    minScore: 680,
-    availableDate: '2026-02-10',
-    status: 'available',
-    features: [
-      'Waterfront View',
-      'Smart Home System',
-      'In-Unit Laundry',
-      'Balcony',
-      'Dishwasher',
-    ],
-    images: [
-      'https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800',
-    ],
-    description: 'Eco-friendly 2-bedroom with river views and smart home features.',
-    createdAt: '2024-03-15T00:00:00Z',
-    updatedAt: '2026-01-21T14:00:00Z',
-  },
-  {
-    id: 'unit-5',
-    propertyId: 'prop-2',
-    unitNumber: '5B',
-    floor: 5,
-    bedrooms: 1,
-    bathrooms: 1,
-    sqft: 750,
-    type: 'rent',
-    askingPrice: 1900,
-    auctionActive: false,
-    totalBids: 0,
-    minScore: 620,
-    availableDate: '2026-02-20',
-    status: 'available',
-    features: ['Waterfront View', 'Smart Home System', 'In-Unit Laundry'],
-    images: [
-      'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800',
-    ],
-    description: 'Modern studio with sustainable features.',
-    createdAt: '2024-04-01T00:00:00Z',
-    updatedAt: '2026-01-20T00:00:00Z',
-  },
-  // Heritage Lofts Units
-  {
-    id: 'unit-6',
-    propertyId: 'prop-3',
-    unitNumber: '8C',
-    floor: 8,
-    bedrooms: 2,
-    bathrooms: 1,
-    sqft: 1400,
-    type: 'rent',
-    askingPrice: 2100,
-    currentBid: 2200,
-    auctionActive: true,
-    auctionEndsAt: '2026-01-27T23:59:59Z',
-    totalBids: 4,
-    minScore: 650,
-    availableDate: '2026-03-01',
-    status: 'available',
-    features: [
-      'Exposed Brick',
-      'High Ceilings',
-      'Hardwood Floors',
-      'Large Windows',
-      'Updated Kitchen',
-    ],
-    images: [
-      'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
-    ],
-    description: 'Character-filled loft with original architectural details.',
-    createdAt: '2024-04-20T00:00:00Z',
-    updatedAt: '2026-01-21T11:00:00Z',
-  },
-  // Skyline Tower Units
-  {
-    id: 'unit-7',
-    propertyId: 'prop-4',
-    unitNumber: '35A',
-    floor: 35,
-    bedrooms: 3,
-    bathrooms: 3,
-    size: 2200,
-    sqft: 2200,
-    type: 'rent',
-    askingPrice: 4500,
-    buyNowPrice: 5000,
-    auctionActive: false,
-    totalBids: 0,
-    minScore: 750,
-    availableDate: '2026-02-15',
-    status: 'available',
-    features: ['Floor-to-Ceiling Windows', 'Smart Home', 'Wine Fridge', 'Spa Bath', 'Walk-in Closets'],
-    images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'],
-    description: 'Penthouse-level luxury with panoramic city views.',
-    createdAt: '2024-05-05T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  // Le Plateau Moderne Units
-  {
-    id: 'unit-8',
-    propertyId: 'prop-5',
-    unitNumber: '2C',
+    property_id: 'prop-2',
+    unit_number: '201',
     floor: 2,
-    bedrooms: 1,
-    bathrooms: 1,
-    size: 750,
-    sqft: 750,
-    type: 'rent',
-    askingPrice: 1650,
-    currentBid: 1700,
-    auctionActive: true,
-    auctionEndsAt: '2026-01-29T23:59:59Z',
-    totalBids: 6,
-    minScore: 600,
-    availableDate: '2026-02-05',
-    status: 'available',
-    features: ['Hardwood Floors', 'Modern Kitchen', 'Balcony', 'Pet-friendly'],
-    images: ['https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800'],
-    description: 'Charming unit in hip Plateau neighborhood.',
-    createdAt: '2024-06-15T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  // Griffintown Lofts Units
-  {
-    id: 'unit-9',
-    propertyId: 'prop-6',
-    unitNumber: '5B',
-    floor: 5,
+    unit_type: '2BR',
     bedrooms: 2,
     bathrooms: 1,
-    size: 1300,
-    sqft: 1300,
-    type: 'rent',
-    askingPrice: 2100,
-    currentBid: 2150,
-    auctionActive: true,
-    auctionEndsAt: '2026-01-30T23:59:59Z',
-    totalBids: 5,
-    minScore: 620,
-    availableDate: '2026-02-20',
+    square_feet: 850,
+    monthly_rent: 1850,
     status: 'available',
-    features: ['Exposed Concrete', 'High Ceilings', 'Industrial Design', 'In-Unit Laundry'],
-    images: ['https://images.unsplash.com/photo-1460317442991-0ec209397118?w=800'],
-    description: 'Open-concept loft with industrial charm.',
-    createdAt: '2024-07-10T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  // Westmount Residences Units
-  {
-    id: 'unit-10',
-    propertyId: 'prop-7',
-    unitNumber: '8A',
-    floor: 8,
-    bedrooms: 3,
-    bathrooms: 2.5,
-    size: 1900,
-    sqft: 1900,
-    type: 'rent',
-    askingPrice: 3800,
-    buyNowPrice: 4200,
-    auctionActive: false,
-    totalBids: 0,
-    minScore: 720,
-    availableDate: '2026-03-01',
-    status: 'available',
-    features: ['Marble Finishes', 'Gourmet Kitchen', 'Private Terrace', 'Master Suite'],
-    images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'],
-    description: 'Sophisticated living in prestigious Westmount.',
-    createdAt: '2024-08-10T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  // Canal View Apartments Units
-  {
-    id: 'unit-11',
-    propertyId: 'prop-8',
-    unitNumber: '4C',
-    floor: 4,
-    bedrooms: 2,
-    bathrooms: 1,
-    size: 950,
-    sqft: 950,
-    type: 'rent',
-    askingPrice: 1850,
-    currentBid: 1900,
-    auctionActive: true,
-    auctionEndsAt: '2026-01-31T23:59:59Z',
-    totalBids: 8,
-    minScore: 640,
-    availableDate: '2026-02-12',
-    status: 'available',
-    features: ['Canal Views', 'Open Kitchen', 'Storage Locker', 'Bike Access'],
-    images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
-    description: 'Active lifestyle living by the canal.',
-    createdAt: '2024-09-15T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  // Mile End Studios Units
-  {
-    id: 'unit-12',
-    propertyId: 'prop-9',
-    unitNumber: 'Studio-A',
-    floor: 3,
-    bedrooms: 0,
-    bathrooms: 1,
-    size: 550,
-    sqft: 550,
-    type: 'rent',
-    askingPrice: 1400,
-    currentBid: 1450,
-    auctionActive: true,
-    auctionEndsAt: '2026-02-01T23:59:59Z',
-    totalBids: 4,
-    minScore: 580,
-    availableDate: '2026-02-08',
-    status: 'available',
-    features: ['Murphy Bed', 'Kitchenette', 'Artistic Neighborhood', 'Pet-friendly'],
-    images: ['https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800'],
-    description: 'Compact studio in vibrant Mile End.',
-    createdAt: '2024-10-05T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  // Downtown Executive Suites Units
-  {
-    id: 'unit-13',
-    propertyId: 'prop-10',
-    unitNumber: '12B',
-    floor: 12,
-    bedrooms: 2,
-    bathrooms: 2,
-    size: 1400,
-    sqft: 1400,
-    type: 'rent',
-    askingPrice: 3200,
-    buyNowPrice: 3600,
-    auctionActive: false,
-    totalBids: 0,
-    minScore: 700,
-    availableDate: '2026-02-01',
-    status: 'available',
-    features: ['Fully Furnished', 'Business Services', 'Housekeeping', 'Downtown Location'],
-    images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'],
-    description: 'Executive-ready furnished suite.',
-    createdAt: '2024-11-10T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
-  },
-  // Green Eco Residences Units
-  {
-    id: 'unit-14',
-    propertyId: 'prop-11',
-    unitNumber: '6D',
-    floor: 6,
-    bedrooms: 2,
-    bathrooms: 1,
-    size: 1050,
-    sqft: 1050,
-    type: 'rent',
-    askingPrice: 2100,
-    currentBid: 2150,
-    auctionActive: true,
-    auctionEndsAt: '2026-02-02T23:59:59Z',
-    totalBids: 7,
-    minScore: 650,
-    availableDate: '2026-02-18',
-    status: 'available',
-    features: ['Solar Power', 'Energy Efficient', 'Recycled Materials', 'Garden Access'],
-    images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
-    description: 'Sustainable living with modern comfort.',
-    createdAt: '2024-12-05T00:00:00Z',
-    updatedAt: '2026-01-21T00:00:00Z',
+    available_date: '2026-03-01',
+    pet_friendly: false,
+    parking_spaces: 1,
+    utilities_included: ['heating'],
+    photos: [
+      'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800',
+    ],
+    floor_plan_url: null,
+    created_at: '2024-06-20T10:00:00Z',
+    updated_at: '2024-06-20T10:00:00Z',
   },
 ];
 
@@ -789,56 +224,504 @@ export const mockUnits: Unit[] = [
 export const mockBids: Bid[] = [
   {
     id: 'bid-1',
-    unitId: 'unit-1',
-    bidderId: 'user-3',
-    bidderName: 'Jean Tremblay',
-    bidderScore: 720,
-    bidderEmail: 'tenant@okey.com',
-    amount: 2450,
-    autoBid: false,
+    unit_id: 'unit-1',
+    bidder_id: 'user-1',
+    bid_amount: 2150,
+    message: 'Very interested, can move in anytime!',
     status: 'active',
-    createdAt: '2026-01-21T10:30:00Z',
-    updatedAt: '2026-01-21T10:30:00Z',
+    auto_bid_enabled: false,
+    max_auto_bid: null,
+    expires_at: null,
+    created_at: '2026-01-20T14:30:00Z',
+    updated_at: '2026-01-20T14:30:00Z',
   },
   {
     id: 'bid-2',
-    unitId: 'unit-1',
-    bidderId: 'user-4',
-    bidderName: 'Sophie Gagnon',
-    bidderScore: 680,
-    bidderEmail: 'bidder@okey.com',
-    amount: 2400,
-    autoBid: true,
-    maxAutoBid: 2500,
-    status: 'outbid',
-    createdAt: '2026-01-21T09:00:00Z',
-    updatedAt: '2026-01-21T10:30:00Z',
+    unit_id: 'unit-1',
+    bidder_id: 'user-5',
+    bid_amount: 2125,
+    message: 'Looking for a place close to work',
+    status: 'active',
+    auto_bid_enabled: true,
+    max_auto_bid: 2200,
+    expires_at: null,
+    created_at: '2026-01-19T10:15:00Z',
+    updated_at: '2026-01-19T10:15:00Z',
   },
   {
     id: 'bid-3',
-    unitId: 'unit-2',
-    bidderId: 'user-4',
-    bidderName: 'Sophie Gagnon',
-    bidderScore: 680,
-    bidderEmail: 'bidder@okey.com',
-    amount: 1850,
-    autoBid: false,
+    unit_id: 'unit-3',
+    bidder_id: 'user-5',
+    bid_amount: 2850,
+    message: 'Perfect for my family!',
     status: 'active',
-    createdAt: '2026-01-20T15:00:00Z',
-    updatedAt: '2026-01-20T15:00:00Z',
+    auto_bid_enabled: false,
+    max_auto_bid: null,
+    expires_at: null,
+    created_at: '2026-01-21T09:00:00Z',
+    updated_at: '2026-01-21T09:00:00Z',
+  },
+];
+
+// ============================================================================
+// MOCK LEASES
+// ============================================================================
+
+export const mockLeases: Lease[] = [
+  {
+    id: 'lease-1',
+    unit_id: 'unit-2',
+    tenant_id: 'user-1',
+    landlord_id: 'user-2',
+    start_date: '2025-06-01',
+    end_date: '2026-05-31',
+    monthly_rent: 1650,
+    security_deposit: 1650,
+    lease_type: 'fixed',
+    status: 'active',
+    lease_document_url: '/documents/lease-1.pdf',
+    docusign_envelope_id: null,
+    terms: {
+      utilities_included: ['heating', 'hot_water'],
+      pet_allowed: false,
+      parking_included: false,
+      notice_period_days: 60,
+    },
+    created_at: '2025-05-15T10:00:00Z',
+    updated_at: '2025-05-15T10:00:00Z',
+  },
+];
+
+// ============================================================================
+// MOCK TRANSACTIONS
+// ============================================================================
+
+export const mockTransactions: Transaction[] = [
+  {
+    id: 'txn-1',
+    user_id: 'user-1',
+    property_id: 'prop-1',
+    unit_id: 'unit-2',
+    type: 'rent_payment',
+    amount: 1650,
+    status: 'completed',
+    payment_method: 'card',
+    stripe_payment_intent_id: null,
+    description: 'January 2026 Rent',
+    due_date: '2026-01-01',
+    paid_date: '2026-01-02',
+    created_at: '2026-01-02T09:15:00Z',
+    updated_at: '2026-01-02T09:15:00Z',
   },
   {
-    id: 'bid-4',
-    unitId: 'unit-4',
-    bidderId: 'user-3',
-    bidderName: 'Jean Tremblay',
-    bidderScore: 720,
-    bidderEmail: 'tenant@okey.com',
-    amount: 2300,
-    autoBid: false,
+    id: 'txn-2',
+    user_id: 'user-1',
+    property_id: 'prop-1',
+    unit_id: 'unit-2',
+    type: 'rent_payment',
+    amount: 1650,
+    status: 'completed',
+    payment_method: 'card',
+    stripe_payment_intent_id: null,
+    description: 'December 2025 Rent',
+    due_date: '2025-12-01',
+    paid_date: '2025-12-01',
+    created_at: '2025-12-01T10:30:00Z',
+    updated_at: '2025-12-01T10:30:00Z',
+  },
+  {
+    id: 'txn-3',
+    user_id: 'user-1',
+    property_id: 'prop-1',
+    unit_id: 'unit-2',
+    type: 'rent_payment',
+    amount: 1650,
+    status: 'completed',
+    payment_method: 'bank_transfer',
+    stripe_payment_intent_id: null,
+    description: 'November 2025 Rent',
+    due_date: '2025-11-01',
+    paid_date: '2025-11-03',
+    created_at: '2025-11-03T14:20:00Z',
+    updated_at: '2025-11-03T14:20:00Z',
+  },
+];
+
+// ============================================================================
+// MOCK BILLS
+// ============================================================================
+
+export const mockBills: Bill[] = [
+  {
+    id: 'bill-1',
+    unit_id: 'unit-2',
+    tenant_id: 'user-1',
+    amount: 1650,
+    due_date: '2026-02-01',
+    description: 'February 2026 Rent',
+    category: 'rent',
+    status: 'unpaid',
+    paid_amount: 0,
+    created_at: '2026-01-25T10:00:00Z',
+    updated_at: '2026-01-25T10:00:00Z',
+  },
+  {
+    id: 'bill-2',
+    unit_id: 'unit-2',
+    tenant_id: 'user-1',
+    amount: 50,
+    due_date: '2026-02-01',
+    description: 'Parking Fee - February 2026',
+    category: 'parking',
+    status: 'unpaid',
+    paid_amount: 0,
+    created_at: '2026-01-25T10:00:00Z',
+    updated_at: '2026-01-25T10:00:00Z',
+  },
+];
+
+// ============================================================================
+// MOCK ISSUES
+// ============================================================================
+
+export const mockIssues: Issue[] = [
+  {
+    id: 'issue-1',
+    property_id: 'prop-1',
+    unit_id: 'unit-2',
+    reporter_id: 'user-1',
+    assigned_to: 'user-4',
+    title: 'Leaky faucet in kitchen',
+    description: 'The kitchen faucet has been dripping constantly for 2 days. Water is wasted and the sound is annoying at night.',
+    category: 'plumbing',
+    priority: 'medium',
+    status: 'in_progress',
+    photos: ['https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=400'],
+    attachments: [],
+    resolution_notes: null,
+    resolved_at: null,
+    created_at: '2026-01-20T08:30:00Z',
+    updated_at: '2026-01-21T10:00:00Z',
+  },
+  {
+    id: 'issue-2',
+    property_id: 'prop-1',
+    unit_id: 'unit-2',
+    reporter_id: 'user-1',
+    assigned_to: null,
+    title: 'Heating not working properly',
+    description: 'The heating in the bedroom is not reaching the set temperature. It stays around 18°C even when set to 21°C.',
+    category: 'heating',
+    priority: 'high',
+    status: 'open',
+    photos: [],
+    attachments: [],
+    resolution_notes: null,
+    resolved_at: null,
+    created_at: '2026-01-21T07:15:00Z',
+    updated_at: '2026-01-21T07:15:00Z',
+  },
+];
+
+// ============================================================================
+// MOCK MAINTENANCE TASKS
+// ============================================================================
+
+export const mockMaintenanceTasks: MaintenanceTask[] = [
+  {
+    id: 'task-1',
+    property_id: 'prop-1',
+    unit_id: null,
+    issue_id: null,
+    assigned_to: null,
+    title: 'HVAC Filter Replacement - All Units',
+    description: 'Replace HVAC filters in all units as part of quarterly maintenance',
+    type: 'preventive',
+    priority: 'low',
+    status: 'scheduled',
+    frequency: 'quarterly',
+    due_date: '2026-02-15',
+    completed_date: null,
+    estimated_cost: 500,
+    actual_cost: null,
+    checklist: [
+      { item: 'Purchase filters (24 units)', completed: true },
+      { item: 'Schedule with tenants', completed: false },
+      { item: 'Replace filters', completed: false },
+      { item: 'Document completion', completed: false },
+    ],
+    photos: [],
+    notes: null,
+    created_at: '2026-01-15T10:00:00Z',
+    updated_at: '2026-01-15T10:00:00Z',
+  },
+  {
+    id: 'task-2',
+    property_id: 'prop-1',
+    unit_id: 'unit-2',
+    issue_id: 'issue-1',
+    assigned_to: 'user-4',
+    title: 'Fix leaky kitchen faucet - Unit 412',
+    description: 'Repair or replace leaky faucet in unit 412',
+    type: 'corrective',
+    priority: 'medium',
+    status: 'in_progress',
+    frequency: 'one_time',
+    due_date: '2026-01-22',
+    completed_date: null,
+    estimated_cost: 150,
+    actual_cost: null,
+    checklist: [
+      { item: 'Inspect faucet', completed: true },
+      { item: 'Order replacement parts', completed: true },
+      { item: 'Schedule repair', completed: false },
+      { item: 'Complete repair', completed: false },
+    ],
+    photos: [],
+    notes: 'Parts ordered - ETA Jan 22',
+    created_at: '2026-01-20T11:00:00Z',
+    updated_at: '2026-01-21T10:00:00Z',
+  },
+];
+
+// ============================================================================
+// MOCK DOCUMENTS
+// ============================================================================
+
+export const mockDocuments: Document[] = [
+  {
+    id: 'doc-1',
+    uploader_id: 'user-2',
+    property_id: 'prop-1',
+    unit_id: 'unit-2',
+    title: 'Lease Agreement - Unit 412 - Jean Tremblay',
+    description: 'Signed lease agreement for Jean Tremblay, Unit 412',
+    category: 'legal',
+    file_url: '/documents/lease-1.pdf',
+    file_type: 'application/pdf',
+    file_size: 245000,
+    tags: ['lease', 'signed', '2025', 'unit-412'],
+    access_control: {
+      roles: ['owner', 'property_manager', 'tenant'],
+      user_ids: ['user-1', 'user-2', 'user-4'],
+    },
+    created_at: '2025-05-15T10:00:00Z',
+    updated_at: '2025-05-15T10:00:00Z',
+  },
+  {
+    id: 'doc-2',
+    uploader_id: 'user-1',
+    property_id: 'prop-1',
+    unit_id: 'unit-2',
+    title: 'January 2026 Rent Receipt',
+    description: 'Payment receipt for January 2026 rent',
+    category: 'financial',
+    file_url: '/documents/receipt-jan-2026.pdf',
+    file_type: 'application/pdf',
+    file_size: 85000,
+    tags: ['receipt', 'rent', 'january', '2026'],
+    access_control: {
+      roles: ['owner', 'property_manager', 'tenant'],
+      user_ids: ['user-1', 'user-2', 'user-4'],
+    },
+    created_at: '2026-01-02T09:20:00Z',
+    updated_at: '2026-01-02T09:20:00Z',
+  },
+];
+
+// ============================================================================
+// MOCK MEETINGS
+// ============================================================================
+
+export const mockMeetings: Meeting[] = [
+  {
+    id: 'meeting-1',
+    property_id: 'prop-1',
+    organizer_id: 'user-2',
+    title: 'Annual General Meeting 2026',
+    type: 'general_assembly',
+    scheduled_at: '2026-03-15T19:00:00Z',
+    location: {
+      type: 'hybrid',
+      address: '1455 Rue Drummond, Party Room',
+      link: 'https://zoom.us/j/123456789',
+    },
+    status: 'scheduled',
+    agenda: [
+      {
+        item: 'Call to order',
+        description: 'Welcome and attendance',
+        time_allocation: 5,
+      },
+      {
+        item: 'Financial report',
+        description: '2025 financial review and 2026 budget presentation',
+        time_allocation: 30,
+      },
+      {
+        item: 'Building maintenance update',
+        description: 'Recent and upcoming maintenance work',
+        time_allocation: 20,
+      },
+      {
+        item: 'Q&A',
+        description: 'Open floor for questions',
+        time_allocation: 30,
+      },
+    ],
+    minutes: null,
+    minutes_approved: false,
+    attendees: [
+      { user_id: 'user-1', rsvp_status: 'accepted', attended: false },
+      { user_id: 'user-2', rsvp_status: 'accepted', attended: false },
+    ],
+    documents: ['doc-2'],
+    created_at: '2026-01-10T10:00:00Z',
+    updated_at: '2026-01-10T10:00:00Z',
+  },
+];
+
+// ============================================================================
+// MOCK VOTES
+// ============================================================================
+
+export const mockVotes: Vote[] = [
+  {
+    id: 'vote-1',
+    property_id: 'prop-1',
+    meeting_id: null,
+    creator_id: 'user-2',
+    title: 'Approve 2026 Operating Budget',
+    description: 'Vote to approve the proposed operating budget for 2026. The budget includes increases for maintenance reserves and insurance.',
+    type: 'simple_majority',
+    threshold: 0.5,
+    start_date: '2026-01-20T00:00:00Z',
+    end_date: '2026-02-10T23:59:59Z',
     status: 'active',
-    createdAt: '2026-01-21T08:00:00Z',
-    updatedAt: '2026-01-21T08:00:00Z',
+    eligible_voters: ['user-1', 'user-2'],
+    voting_weight: {
+      'user-1': 1,
+      'user-2': 1,
+    },
+    allow_changes: false,
+    anonymous: false,
+    results: {
+      for: 1,
+      against: 0,
+      abstain: 0,
+    },
+    created_at: '2026-01-20T10:00:00Z',
+    updated_at: '2026-01-20T15:30:00Z',
+  },
+];
+
+export const mockVoteRecords: VoteRecord[] = [
+  {
+    id: 'vr-1',
+    vote_id: 'vote-1',
+    voter_id: 'user-1',
+    choice: 'for',
+    weight: 1,
+    voted_at: '2026-01-20T15:30:00Z',
+  },
+];
+
+// ============================================================================
+// MOCK MESSAGES & CONVERSATIONS
+// ============================================================================
+
+export const mockConversations: Conversation[] = [
+  {
+    id: 'conv-1',
+    participants: ['user-1', 'user-4'],
+    type: 'direct',
+    title: null,
+    created_at: '2026-01-15T10:00:00Z',
+    updated_at: '2026-01-21T10:05:00Z',
+  },
+];
+
+export const mockMessages: Message[] = [
+  {
+    id: 'msg-1',
+    conversation_id: 'conv-1',
+    sender_id: 'user-4',
+    content: 'Hello Jean! How can I help you today?',
+    attachments: [],
+    read_by: [
+      { user_id: 'user-4', read_at: '2026-01-21T10:00:00Z' },
+      { user_id: 'user-1', read_at: '2026-01-21T10:02:00Z' },
+    ],
+    created_at: '2026-01-21T10:00:00Z',
+    updated_at: '2026-01-21T10:00:00Z',
+  },
+  {
+    id: 'msg-2',
+    conversation_id: 'conv-1',
+    sender_id: 'user-1',
+    content: 'Hi! I submitted a maintenance request for the leaky faucet in my kitchen. Any updates?',
+    attachments: [],
+    read_by: [
+      { user_id: 'user-1', read_at: '2026-01-21T10:05:00Z' },
+      { user_id: 'user-4', read_at: '2026-01-21T10:10:00Z' },
+    ],
+    created_at: '2026-01-21T10:05:00Z',
+    updated_at: '2026-01-21T10:05:00Z',
+  },
+  {
+    id: 'msg-3',
+    conversation_id: 'conv-1',
+    sender_id: 'user-4',
+    content: "Yes! I've assigned it to our plumbing team. They should be able to come by tomorrow between 10 AM and 2 PM. Does that work for you?",
+    attachments: [],
+    read_by: [
+      { user_id: 'user-4', read_at: '2026-01-21T10:11:00Z' },
+    ],
+    created_at: '2026-01-21T10:11:00Z',
+    updated_at: '2026-01-21T10:11:00Z',
+  },
+];
+
+// ============================================================================
+// MOCK NOTIFICATIONS
+// ============================================================================
+
+export const mockNotifications: Notification[] = [
+  {
+    id: 'notif-1',
+    user_id: 'user-1',
+    type: 'maintenance',
+    title: 'Maintenance Request Assigned',
+    message: 'Your maintenance request has been assigned to a technician',
+    action_url: '/tenant/maintenance',
+    data: { issue_id: 'issue-1' },
+    read: false,
+    read_at: null,
+    created_at: '2026-01-21T10:00:00Z',
+  },
+  {
+    id: 'notif-2',
+    user_id: 'user-1',
+    type: 'finance',
+    title: 'Rent Due Soon',
+    message: 'Your February rent payment is due in 10 days',
+    action_url: '/tenant/payments',
+    data: { bill_id: 'bill-1' },
+    read: false,
+    read_at: null,
+    created_at: '2026-01-22T08:00:00Z',
+  },
+  {
+    id: 'notif-3',
+    user_id: 'user-1',
+    type: 'message',
+    title: 'New Message from Property Manager',
+    message: 'Pierre Gagnon sent you a message',
+    action_url: '/messages',
+    data: { conversation_id: 'conv-1' },
+    read: true,
+    read_at: '2026-01-21T10:12:00Z',
+    created_at: '2026-01-21T10:11:00Z',
   },
 ];
 
@@ -846,34 +729,138 @@ export const mockBids: Bid[] = [
 // HELPER FUNCTIONS
 // ============================================================================
 
+export function getUserById(id: string): User | undefined {
+  return mockUsers.find(u => u.id === id);
+}
+
+export function getUserByEmail(email: string): User | undefined {
+  return mockUsers.find(u => u.email === email);
+}
+
 export function getPropertyById(id: string): Property | undefined {
-  return mockProperties.find((p) => p.id === id);
+  return mockProperties.find(p => p.id === id);
+}
+
+export function getPropertiesByOwner(ownerId: string): Property[] {
+  return mockProperties.filter(p => p.owner_id === ownerId);
+}
+
+export function getAllProperties(): Property[] {
+  return mockProperties;
 }
 
 export function getUnitById(id: string): Unit | undefined {
-  return mockUnits.find((u) => u.id === id);
+  return mockUnits.find(u => u.id === id);
 }
 
-export function getUnitsByPropertyId(propertyId: string): Unit[] {
-  return mockUnits.filter((u) => u.propertyId === propertyId);
-}
-
-export function getBidsByUnitId(unitId: string): Bid[] {
-  return mockBids.filter((b) => b.unitId === unitId).sort((a, b) => b.amount - a.amount);
-}
-
-export function getBidsByUserId(userId: string): Bid[] {
-  return mockBids.filter((b) => b.bidderId === userId);
-}
-
-export function getUserById(id: string): User | undefined {
-  return mockUsers.find((u) => u.id === id);
+export function getUnitsByProperty(propertyId: string): Unit[] {
+  return mockUnits.filter(u => u.property_id === propertyId);
 }
 
 export function getAvailableUnits(): Unit[] {
-  return mockUnits.filter((u) => u.status === 'available');
+  return mockUnits.filter(u => u.status === 'available');
+}
+
+export function getBidsByUnit(unitId: string): Bid[] {
+  return mockBids.filter(b => b.unit_id === unitId).sort((a, b) => b.bid_amount - a.bid_amount);
+}
+
+export function getBidsByUser(userId: string): Bid[] {
+  return mockBids.filter(b => b.bidder_id === userId);
+}
+
+export function getLeaseByUnit(unitId: string): Lease | undefined {
+  return mockLeases.find(l => l.unit_id === unitId && l.status === 'active');
+}
+
+export function getLeasesByTenant(tenantId: string): Lease[] {
+  return mockLeases.filter(l => l.tenant_id === tenantId);
+}
+
+export function getTransactionsByUser(userId: string): Transaction[] {
+  return mockTransactions.filter(t => t.user_id === userId).sort((a, b) =>
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
+
+export function getBillsByTenant(tenantId: string): Bill[] {
+  return mockBills.filter(b => b.tenant_id === tenantId).sort((a, b) =>
+    new Date(b.due_date).getTime() - new Date(a.due_date).getTime()
+  );
+}
+
+export function getUnpaidBills(tenantId: string): Bill[] {
+  return mockBills.filter(b => b.tenant_id === tenantId && (b.status === 'unpaid' || b.status === 'overdue'));
+}
+
+export function calculateTotalDue(tenantId: string): number {
+  const unpaidBills = getUnpaidBills(tenantId);
+  return unpaidBills.reduce((sum, bill) => sum + bill.amount, 0);
+}
+
+export function getIssuesByProperty(propertyId: string): Issue[] {
+  return mockIssues.filter(i => i.property_id === propertyId).sort((a, b) =>
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
+
+export function getIssuesByReporter(reporterId: string): Issue[] {
+  return mockIssues.filter(i => i.reporter_id === reporterId).sort((a, b) =>
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
+
+export function getMaintenanceTasksByProperty(propertyId: string): MaintenanceTask[] {
+  return mockMaintenanceTasks.filter(t => t.property_id === propertyId);
+}
+
+export function getDocumentsByProperty(propertyId: string): Document[] {
+  return mockDocuments.filter(d => d.property_id === propertyId);
+}
+
+export function getDocumentsByUser(userId: string): Document[] {
+  return mockDocuments.filter(d =>
+    d.access_control.user_ids.includes(userId)
+  );
+}
+
+export function getMeetingsByProperty(propertyId: string): Meeting[] {
+  return mockMeetings.filter(m => m.property_id === propertyId);
+}
+
+export function getVotesByProperty(propertyId: string): Vote[] {
+  return mockVotes.filter(v => v.property_id === propertyId);
+}
+
+export function getActiveVotes(propertyId: string): Vote[] {
+  return mockVotes.filter(v => v.property_id === propertyId && v.status === 'active');
+}
+
+export function getMessagesByConversation(conversationId: string): Message[] {
+  return mockMessages.filter(m => m.conversation_id === conversationId).sort((a, b) =>
+    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  );
+}
+
+export function getConversationsByUser(userId: string): Conversation[] {
+  return mockConversations.filter(c => c.participants.includes(userId));
+}
+
+export function getNotificationsByUser(userId: string): Notification[] {
+  return mockNotifications.filter(n => n.user_id === userId).sort((a, b) =>
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
+
+export function getUnreadNotificationCount(userId: string): number {
+  return mockNotifications.filter(n => n.user_id === userId && !n.read).length;
 }
 
 export function getActiveAuctions(): Unit[] {
-  return mockUnits.filter((u) => u.auctionActive && u.status === 'available');
+  return mockUnits.filter(u => u.status === 'available');
 }
+
+// Aliases for backwards compatibility
+export const getUnitsByPropertyId = getUnitsByProperty;
+export const getBidsByUnitId = getBidsByUnit;
+export const getBidsByUserId = getBidsByUser;

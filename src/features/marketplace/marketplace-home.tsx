@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import {
-  Search, TrendingUp, Users, Key, MapPin, DollarSign, Home,
-  Star, Shield, Clock, Award, Heart, Bell, Filter, ChevronRight,
-  Building2, Zap, CheckCircle, ArrowRight, BedDouble, Bath, Square,
-  TrendingDown, MessageCircle, Globe
+  Search, TrendingUp, Key, MapPin, DollarSign, Home,
+  Star, Shield, Clock, CheckCircle, ArrowRight, BedDouble, Bath,
+  MessageCircle, Eye, FileCheck, Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'motion/react';
-import { mockProperties, getAvailableUnits, getActiveAuctions } from '@/lib/data/mockData';
+import { getAvailableUnits, getPropertyById } from '@/lib/data/mockData';
 
 interface MarketplaceHomeProps {
   onNavigate: (route: string, id?: string) => void;
@@ -19,53 +18,96 @@ interface MarketplaceHomeProps {
 
 export function MarketplaceHome({ onNavigate }: MarketplaceHomeProps) {
   const [location, setLocation] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [priceRange, setPriceRange] = useState('any');
+  const [propertyType, setPropertyType] = useState('any');
 
-  const availableUnits = getAvailableUnits();
-  const activeAuctions = getActiveAuctions();
+  const availableUnits = getAvailableUnits().slice(0, 8); // Get first 8 units
 
+  const handleSearch = () => {
+    // Build query string with search parameters
+    const params = new URLSearchParams();
+    if (location) params.append('location', location);
+    if (priceRange && priceRange !== 'any') params.append('price', priceRange);
+    if (propertyType && propertyType !== 'any') params.append('type', propertyType);
+
+    const queryString = params.toString();
+    onNavigate('search', queryString ? `?${queryString}` : '');
+  };
+
+  // How It Works steps
+  const steps = [
+    {
+      number: '1',
+      icon: Search,
+      title: 'Search & Discover',
+      description: 'Browse through hundreds of verified properties. Filter by location, price, amenities, and more.',
+      color: 'from-blue-500 to-blue-600'
+    },
+    {
+      number: '2',
+      icon: DollarSign,
+      title: 'Place Your Bid',
+      description: 'Found your dream place? Submit your bid along with your O\'Key score to stand out from other applicants.',
+      color: 'from-purple-500 to-purple-600'
+    },
+    {
+      number: '3',
+      icon: Key,
+      title: 'Move In',
+      description: 'Once accepted, sign your lease digitally and coordinate your move-in date. It\'s that simple!',
+      color: 'from-green-500 to-green-600'
+    }
+  ];
+
+  // Benefits
+  const benefits = [
+    {
+      icon: Eye,
+      title: 'Know Where You Stand',
+      description: 'See current bids and your ranking. No more waiting in the dark wondering if your application was seen.',
+      color: 'blue'
+    },
+    {
+      icon: Star,
+      title: 'One Score, Multiple Applications',
+      description: 'Build your tenant profile once. Your O\'Key score works for every application, saving you time and paperwork.',
+      color: 'purple'
+    },
+    {
+      icon: FileCheck,
+      title: '100% Digital Process',
+      description: 'From search to lease signing, everything happens online. No need for in-person visits or paper forms.',
+      color: 'green'
+    },
+    {
+      icon: MessageCircle,
+      title: 'Connect Directly',
+      description: 'Message property managers directly. Get answers fast without middlemen or agents.',
+      color: 'orange'
+    }
+  ];
+
+  // Statistics
   const stats = [
-    { value: `${mockProperties.length}`, label: 'Active Properties', icon: Building2, color: '#0D7377', change: '+12%' },
-    { value: `${availableUnits.length}`, label: 'Units Available', icon: Key, color: '#F4A261', change: '+18%' },
-    { value: `${activeAuctions.length}`, label: 'Live Auctions', icon: TrendingUp, color: '#E76F51', change: '+0.3' },
-    { value: '24/7', label: 'Support Available', icon: Clock, color: '#0D7377', change: 'Always' },
-  ];
-
-  const categories = [
-    { id: 'all', label: 'All Properties', count: mockProperties.length },
-    { id: 'downtown', label: 'Downtown', count: mockProperties.length },
-    { id: 'waterfront', label: 'Waterfront', count: 1 },
-    { id: 'historic', label: 'Historic', count: 1 },
-  ];
-
-  const features = [
-    {
-      icon: <Shield className="w-12 h-12 text-[#0D7377]" />,
-      title: 'Verified Properties',
-      description: 'All properties verified and scored for quality and safety',
-    },
-    {
-      icon: <DollarSign className="w-12 h-12 text-[#F4A261]" />,
-      title: 'Fair Pricing',
-      description: 'Market-driven auction bidding ensures fair rental prices',
-    },
-    {
-      icon: <Star className="w-12 h-12 text-[#E76F51]" />,
-      title: 'Score-Based Matching',
-      description: 'Your O\'Key score qualifies you for premium properties',
-    },
-    {
-      icon: <Zap className="w-12 h-12 text-[#0D7377]" />,
-      title: 'Instant Approval',
-      description: 'Fast-track rental process with automated approvals',
-    },
+    { value: '500+', label: 'Properties Available' },
+    { value: '2,000+', label: 'Active Bidders' },
+    { value: '10,000+', label: 'Successful Placements' },
+    { value: '7 days', label: 'Average Time to Lease' }
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-[#0D7377] to-[#14FFEC] text-white">
-        <div className="container mx-auto px-4 py-16 md:py-24">
+      <section className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0" style={{
+            backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
+            backgroundSize: '40px 40px'
+          }}></div>
+        </div>
+
+        <div className="container mx-auto px-4 py-20 md:py-28 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -73,10 +115,10 @@ export function MarketplaceHome({ onNavigate }: MarketplaceHomeProps) {
               transition={{ duration: 0.6 }}
             >
               <h1 className="text-4xl md:text-6xl font-bold mb-6">
-                Find Your Perfect Home
+                Find Your Perfect Home with O'Key
               </h1>
-              <p className="text-xl md:text-2xl mb-8 text-white/90">
-                Bid on premium rentals. Build your O'Key score. Secure your future.
+              <p className="text-xl md:text-2xl mb-10 text-white/90">
+                Search, bid, and secure your next rental — all in one platform
               </p>
             </motion.div>
 
@@ -85,31 +127,45 @@ export function MarketplaceHome({ onNavigate }: MarketplaceHomeProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="bg-white rounded-lg p-4 shadow-lg"
+              className="bg-white rounded-2xl p-4 shadow-2xl"
             >
               <div className="flex flex-col md:flex-row gap-3">
                 <div className="flex-1 relative">
                   <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input
-                    placeholder="Montreal, Quebec"
+                    placeholder="Where do you want to live?"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="pl-10 h-12 text-gray-900"
+                    className="pl-11 h-12 text-gray-900 border-gray-200"
                   />
                 </div>
-                <Select defaultValue="rent">
+                <Select value={priceRange} onValueChange={setPriceRange}>
                   <SelectTrigger className="md:w-[180px] h-12 text-gray-900">
-                    <SelectValue />
+                    <SelectValue placeholder="Any price" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="rent">For Rent</SelectItem>
-                    <SelectItem value="buy">For Sale</SelectItem>
+                    <SelectItem value="any">Any price</SelectItem>
+                    <SelectItem value="1000-1500">$1,000 - $1,500</SelectItem>
+                    <SelectItem value="1500-2000">$1,500 - $2,000</SelectItem>
+                    <SelectItem value="2000-2500">$2,000 - $2,500</SelectItem>
+                    <SelectItem value="2500+">$2,500+</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={propertyType} onValueChange={setPropertyType}>
+                  <SelectTrigger className="md:w-[180px] h-12 text-gray-900">
+                    <SelectValue placeholder="Any type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any type</SelectItem>
+                    <SelectItem value="apartment">Apartment</SelectItem>
+                    <SelectItem value="condo">Condo</SelectItem>
+                    <SelectItem value="house">House</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button
                   size="lg"
-                  className="bg-[#0D7377] hover:bg-[#0a5a5d] h-12"
-                  onClick={() => onNavigate('search')}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 h-12 px-8"
+                  onClick={handleSearch}
                 >
                   <Search className="w-5 h-5 mr-2" />
                   Search
@@ -117,216 +173,319 @@ export function MarketplaceHome({ onNavigate }: MarketplaceHomeProps) {
               </div>
             </motion.div>
 
-            {/* Quick Categories */}
+            {/* Quick Stats */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
-              className="mt-8 flex flex-wrap justify-center gap-3"
+              className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4"
             >
-              {categories.map((cat, index) => (
-                <motion.div
-                  key={cat.id}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    variant={selectedCategory === cat.id ? 'secondary' : 'outline'}
-                    onClick={() => setSelectedCategory(cat.id)}
-                    className="bg-white/10 hover:bg-white/20 text-white border-white/30 transition-all duration-300"
-                  >
-                    {cat.label}
-                    <Badge variant="secondary" className="ml-2 bg-white/20">
-                      {cat.count}
-                    </Badge>
-                  </Button>
-                </motion.div>
+              {[
+                { label: '500+ Properties', icon: Home },
+                { label: '10,000+ Happy Tenants', icon: Star },
+                { label: 'Average Score: 78', icon: TrendingUp },
+                { label: '98% Satisfaction', icon: CheckCircle }
+              ].map((stat, index) => (
+                <div key={index} className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                  <stat.icon className="w-6 h-6 mb-2 mx-auto" />
+                  <p className="text-sm font-medium">{stat.label}</p>
+                </div>
               ))}
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-12 bg-white border-b">
+      {/* How It Works Section */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {stats.map((stat, index) => (
+          <div className="text-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">How O'Key Works</h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Your journey to a new home in 3 simple steps
+              </p>
+            </motion.div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {steps.map((step, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-                whileHover={{ scale: 1.05, y: -5 }}
-                className="text-center cursor-pointer"
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                whileHover={{ y: -10 }}
+                className="relative"
               >
-                <div className="flex justify-center mb-3">
-                  <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center transition-all duration-300 hover:shadow-lg"
-                    style={{ backgroundColor: `${stat.color}20` }}
-                  >
-                    <stat.icon className="w-8 h-8 transition-transform duration-300 hover:scale-110" style={{ color: stat.color }} />
+                <Card className="p-8 h-full hover:shadow-2xl transition-all duration-300 border-2 border-gray-100">
+                  <div className="text-center">
+                    {/* Number Badge */}
+                    <div className={`w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-to-br ${step.color} text-white flex items-center justify-center text-2xl font-bold shadow-lg`}>
+                      {step.number}
+                    </div>
+
+                    {/* Icon */}
+                    <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gray-50 flex items-center justify-center">
+                      <step.icon className="w-10 h-10 text-gray-700" />
+                    </div>
+
+                    {/* Content */}
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4">{step.title}</h3>
+                    <p className="text-gray-600 leading-relaxed">{step.description}</p>
                   </div>
-                </div>
-                <div className="text-3xl font-bold mb-1" style={{ color: stat.color }}>
-                  {stat.value}
-                </div>
-                <div className="text-sm text-gray-600">{stat.label}</div>
-                <div className="text-xs text-green-600 font-medium mt-1">{stat.change}</div>
+                </Card>
+
+                {/* Arrow between steps (desktop only) */}
+                {index < steps.length - 1 && (
+                  <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+                    <ArrowRight className="w-8 h-8 text-gray-300" />
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Featured Properties */}
-      <section className="py-16">
+      {/* Featured Properties Section */}
+      <section className="py-20 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">Featured Properties</h2>
-              <p className="text-gray-600">Explore our top-rated buildings with available units</p>
-            </div>
-            <Button variant="outline" onClick={() => onNavigate('search')}>
-              View All
-              <ChevronRight className="w-4 h-4 ml-2" />
+          <div className="flex justify-between items-center mb-12">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <h2 className="text-4xl font-bold text-gray-900 mb-2">Featured Properties</h2>
+              <p className="text-xl text-gray-600">Hand-picked properties available for bidding now</p>
+            </motion.div>
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => onNavigate('search')}
+              className="hidden md:flex"
+            >
+              View All Properties
+              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockProperties.map((property, index) => (
-              <motion.div
-                key={property.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-                whileHover={{ scale: 1.02, y: -5 }}
-                className="h-full"
-              >
-                <Card
-                  className="overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer h-full"
-                  onClick={() => onNavigate('property', property.id)}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {availableUnits.map((unit, index) => {
+              const property = getPropertyById(unit.property_id);
+              if (!property) return null;
+
+              return (
+                <motion.div
+                  key={unit.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  whileHover={{ y: -8 }}
+                  className="h-full"
                 >
-                  <div className="relative h-48 bg-gray-200 overflow-hidden group">
-                    <img
-                      src={property.images[0]}
-                      alt={property.buildingName}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                    {property.verified && (
-                      <div className="absolute top-4 right-4 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" />
-                        Verified
-                      </div>
-                    )}
-                    {property.availableUnits > 0 && (
-                      <div className="absolute bottom-4 left-4 bg-[#0D7377] text-white px-3 py-1 rounded-full text-xs font-medium">
-                        {property.availableUnits} units available
-                      </div>
-                    )}
-                  </div>
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="text-xl font-bold mb-1">{property.buildingName}</h3>
-                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {property.city}, {property.province}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded">
-                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                        <span className="text-sm font-medium">{(property.buildingScore / 100).toFixed(1)}</span>
-                      </div>
-                    </div>
-
-                    <div className="mb-4">
-                      <div className="text-2xl font-bold text-[#0D7377]">{property.priceRange}</div>
-                      <div className="text-xs text-gray-500">per month</div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {property.amenities.slice(0, 3).map((amenity, i) => (
-                        <Badge key={i} variant="secondary" className="text-xs">
-                          {amenity}
-                        </Badge>
-                      ))}
-                      {property.amenities.length > 3 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{property.amenities.length - 3} more
-                        </Badge>
+                  <Card
+                    className="overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer h-full group"
+                    onClick={() => onNavigate('unit', unit.id)}
+                  >
+                    {/* Image */}
+                    <div className="relative h-48 bg-gray-200 overflow-hidden">
+                      <img
+                        src={unit.photos?.[0] || property.photos[0]}
+                        alt={`${property.name} - Unit ${unit.unit_number}`}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                      {unit.pet_friendly && (
+                        <div className="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" />
+                          Pet Friendly
+                        </div>
                       )}
                     </div>
 
-                    <Button className="w-full bg-[#0D7377] hover:bg-[#0a5a5d]">
-                      View Property
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+                    {/* Content */}
+                    <CardContent className="p-5">
+                      {/* Price */}
+                      <div className="mb-3">
+                        <div className="text-2xl font-bold text-blue-600">
+                          ${unit.monthly_rent.toLocaleString()}
+                          <span className="text-sm font-normal text-gray-500">/month</span>
+                        </div>
+                      </div>
+
+                      {/* Property Info */}
+                      <h3 className="text-lg font-bold text-gray-900 mb-1">{property.name}</h3>
+                      <p className="text-sm text-gray-600 mb-3 flex items-center gap-1">
+                        <MapPin className="w-3 h-3" />
+                        {property.address.city}, {property.address.province}
+                      </p>
+
+                      {/* Unit Details */}
+                      <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <BedDouble className="w-4 h-4" />
+                          <span>{unit.bedrooms} BR</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Bath className="w-4 h-4" />
+                          <span>{unit.bathrooms} BA</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Home className="w-4 h-4" />
+                          <span>{unit.square_feet} ft²</span>
+                        </div>
+                      </div>
+
+                      {/* Amenities */}
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {unit.utilities_included?.slice(0, 2).map((utility, i) => (
+                          <Badge key={i} variant="secondary" className="text-xs">
+                            {utility}
+                          </Badge>
+                        ))}
+                        {unit.parking_spaces > 0 && (
+                          <Badge variant="secondary" className="text-xs">
+                            Parking
+                          </Badge>
+                        )}
+                      </div>
+
+                      {/* View Button */}
+                      <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+                        View Details
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Mobile View All Button */}
+          <div className="mt-10 text-center md:hidden">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => onNavigate('search')}
+              className="w-full"
+            >
+              View All Properties
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-16 bg-white">
+      {/* Benefits Section */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Why Choose O'Key?</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              We're revolutionizing real estate with transparency, fairness, and trust
-            </p>
+          <div className="text-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+            >
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">Why Choose O'Key?</h2>
+              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                Experience the future of rental housing with transparency and trust
+              </p>
+            </motion.div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+            {benefits.map((benefit, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
-                whileHover={{ scale: 1.05, y: -10 }}
-                className="text-center p-6 rounded-xl hover:bg-gray-50 transition-all duration-300 cursor-pointer"
+                whileHover={{ y: -10 }}
+                className="text-center p-6 rounded-xl hover:bg-gray-50 transition-all duration-300"
               >
-                <div className="flex justify-center mb-4">
-                  <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center transition-all duration-300 hover:shadow-xl hover:bg-white">
-                    {feature.icon}
+                <div className="flex justify-center mb-6">
+                  <div className={`w-20 h-20 rounded-full bg-${benefit.color}-100 flex items-center justify-center`}>
+                    <benefit.icon className={`w-10 h-10 text-${benefit.color}-600`} />
                   </div>
                 </div>
-                <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
-                <p className="text-gray-600 text-sm">{feature.description}</p>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">{benefit.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{benefit.description}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-br from-[#0D7377] to-[#14FFEC] text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Find Your Home?</h2>
-          <p className="text-xl mb-8 text-white/90">
-            Join thousands of renters building their future with O'Key
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              className="bg-white text-[#0D7377] hover:bg-gray-100"
-              onClick={() => onNavigate('search')}
-            >
-              Browse Properties
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-white text-white hover:bg-white/10"
-              onClick={() => onNavigate('score')}
-            >
-              Check Your Score
-            </Button>
+      {/* Statistics Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="text-center"
+              >
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6">
+                  <div className="text-4xl md:text-5xl font-bold mb-2">{stat.value}</div>
+                  <div className="text-white/90 font-medium">{stat.label}</div>
+                </div>
+              </motion.div>
+            ))}
           </div>
+        </div>
+      </section>
+
+      {/* Call to Action Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="max-w-4xl mx-auto text-center"
+          >
+            <Sparkles className="w-16 h-16 mx-auto mb-6 text-yellow-500" />
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Ready to Find Your Next Home?
+            </h2>
+            <p className="text-xl text-gray-600 mb-10">
+              Start browsing available properties and place your first bid today
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-lg px-8 py-6"
+                onClick={() => onNavigate('search')}
+              >
+                Start Searching
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                className="text-lg px-8 py-6"
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              >
+                Learn More
+              </Button>
+            </div>
+          </motion.div>
         </div>
       </section>
     </div>

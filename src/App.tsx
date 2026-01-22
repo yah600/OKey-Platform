@@ -1,173 +1,100 @@
-import { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { AppProvider } from './context/AppContext';
 import { BidProvider } from './context/BidContext';
-import { AuthProvider, useAuth } from './context/AuthContext';
+
+// Route Guards
+import { ProtectedRoute } from './components/routes/ProtectedRoute';
+import { RoleRoute } from './components/routes/RoleRoute';
+import { PublicRoute } from './components/routes/PublicRoute';
+
+// Layout
+import { MainLayout } from './components/layout/MainLayout';
+
+// Public Pages
 import { LoginPage } from './features/auth/LoginPage';
-import { LogOut, User } from 'lucide-react';
+import { MarketplaceHome } from './components/adapters/MarketplaceHomeAdapter';
+import { PropertySearch } from './components/adapters/PropertySearchAdapter';
+import { PropertyDetail } from './components/adapters/PropertyDetailAdapter';
+import { UnitDetail } from './components/adapters/UnitDetailAdapter';
 
-// Pages
-import { MarketplaceHome } from './features/marketplace/marketplace-home';
-import { PropertySearch } from './features/marketplace/property-search';
-import { PropertyDetail } from './features/marketplace/property-detail';
-import { UnitDetail } from './features/marketplace/unit-detail';
-import { ScoreDashboard } from './features/marketplace/score-dashboard';
-import { MyBids } from './features/marketplace/my-bids';
-import { TenantDashboardEnhanced } from './features/tenant-portal/tenant-dashboard-enhanced';
-import { OwnerDashboardEnhanced } from './features/property-management/owner-dashboard-enhanced';
+// Protected Pages (Any Authenticated User)
+import { MyBids } from './components/adapters/MyBidsAdapter';
+import { MessagesPage } from './pages/MessagesPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { ScoreDashboard } from './components/adapters/ScoreDashboardAdapter';
 
-type Page = 'home' | 'search' | 'property' | 'unit' | 'score' | 'bids' | 'tenant' | 'owner';
+// Tenant Pages
+import { TenantDashboardEnhanced } from './components/adapters/TenantDashboardAdapter';
+import { TenantPaymentsPage } from './pages/tenant/TenantPaymentsPage';
+import { TenantMaintenancePage } from './pages/tenant/TenantMaintenancePage';
+import { TenantDocumentsPage } from './pages/tenant/TenantDocumentsPage';
+import { TenantMessagesPage } from './pages/tenant/TenantMessagesPage';
 
-function AppContent() {
-  const { user, isAuthenticated, logout } = useAuth();
-  const [currentPage, setCurrentPage] = useState<Page>('home');
-  const [selectedId, setSelectedId] = useState<string>('');
-
-  const navigate = (page: string, id?: string) => {
-    setCurrentPage(page as Page);
-    if (id) setSelectedId(id);
-  };
-
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
-
-  return (
-    <BidProvider>
-      <div className="min-h-screen bg-gray-50">
-        {/* Enhanced Navigation */}
-        <nav className="bg-white border-b sticky top-0 z-50 shadow-sm">
-          <div className="container mx-auto px-6 py-3">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => navigate('home')}
-                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
-              >
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-lg">O</span>
-                </div>
-                <div>
-                  <span className="text-xl font-bold text-gray-900">O'Key Platform</span>
-                  <div className="text-xs text-gray-500 -mt-1">Property Management</div>
-                </div>
-              </button>
-
-              <div className="flex items-center gap-3">
-                <div className="flex gap-2">
-                <button
-                  onClick={() => navigate('home')}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                    currentPage === 'home'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  Marketplace
-                </button>
-                <button
-                  onClick={() => navigate('search')}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                    currentPage === 'search'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  Search
-                </button>
-                <button
-                  onClick={() => navigate('score')}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                    currentPage === 'score'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  My Score
-                </button>
-                <button
-                  onClick={() => navigate('bids')}
-                  className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                    currentPage === 'bids'
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'hover:bg-gray-100 text-gray-700'
-                  }`}
-                >
-                  My Bids
-                </button>
-              </div>
-
-              <div className="h-8 w-px bg-gray-300"></div>
-
-              <div className="flex gap-2">
-                {user?.role === 'tenant' && (
-                  <button
-                    onClick={() => navigate('tenant')}
-                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                      currentPage === 'tenant'
-                        ? 'bg-blue-600 text-white shadow-sm'
-                        : 'hover:bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    Tenant Portal
-                  </button>
-                )}
-                {user?.role === 'owner' && (
-                  <button
-                    onClick={() => navigate('owner')}
-                    className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${
-                      currentPage === 'owner'
-                        ? 'bg-purple-600 text-white shadow-sm'
-                        : 'hover:bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    Owner Portal
-                  </button>
-                )}
-              </div>
-
-              <div className="h-8 w-px bg-gray-300"></div>
-
-              {/* User Menu */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-2 bg-gray-100 rounded-lg">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <div className="text-sm font-semibold text-gray-900">{user?.name}</div>
-                    <div className="text-xs text-gray-600 capitalize">{user?.role}</div>
-                  </div>
-                </div>
-                <button
-                  onClick={logout}
-                  className="p-2 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
-                  title="Logout"
-                >
-                  <LogOut className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        {/* Page Content */}
-        {currentPage === 'home' && <MarketplaceHome onNavigate={navigate} />}
-        {currentPage === 'search' && <PropertySearch onNavigate={navigate} />}
-        {currentPage === 'property' && <PropertyDetail propertyId={selectedId} onNavigate={navigate} />}
-        {currentPage === 'unit' && <UnitDetail unitId={selectedId} onNavigate={navigate} />}
-        {currentPage === 'score' && <ScoreDashboard onNavigate={navigate} />}
-        {currentPage === 'bids' && <MyBids onNavigate={navigate} />}
-        {currentPage === 'tenant' && <TenantDashboardEnhanced onNavigate={navigate} />}
-        {currentPage === 'owner' && <OwnerDashboardEnhanced onNavigate={navigate} />}
-      </div>
-    </BidProvider>
-  );
-}
+// Owner/Manager/Admin Pages
+import { OwnerDashboardEnhanced } from './components/adapters/OwnerDashboardAdapter';
+import { PropertiesPage } from './pages/owner/PropertiesPage';
+import { PropertyDetailPage } from './pages/owner/PropertyDetailPage';
+import { FinancesPage } from './pages/owner/FinancesPage';
+import { MaintenancePage } from './pages/owner/MaintenancePage';
+import { ResidentsPage } from './pages/owner/ResidentsPage';
+import { DocumentsPage } from './pages/owner/DocumentsPage';
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppProvider>
+          <BidProvider>
+            <Routes>
+            {/* Public Routes with PublicRoute guard */}
+            <Route element={<PublicRoute />}>
+              <Route path="/auth/login" element={<LoginPage />} />
+            </Route>
+
+            {/* Public Routes (accessible to everyone) */}
+            <Route element={<MainLayout />}>
+              <Route path="/" element={<MarketplaceHome />} />
+              <Route path="/search" element={<PropertySearch />} />
+              <Route path="/property/:id" element={<PropertyDetail />} />
+              <Route path="/unit/:id" element={<UnitDetail />} />
+
+              {/* Protected Routes (any authenticated user) */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/my-bids" element={<MyBids />} />
+                <Route path="/messages" element={<MessagesPage />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/score" element={<ScoreDashboard />} />
+
+                {/* Tenant Routes */}
+                <Route element={<RoleRoute allowedRoles={['tenant']} />}>
+                  <Route path="/tenant" element={<TenantDashboardEnhanced />} />
+                  <Route path="/tenant/payments" element={<TenantPaymentsPage />} />
+                  <Route path="/tenant/maintenance" element={<TenantMaintenancePage />} />
+                  <Route path="/tenant/documents" element={<TenantDocumentsPage />} />
+                  <Route path="/tenant/messages" element={<TenantMessagesPage />} />
+                </Route>
+
+                {/* Owner/Manager/Admin Routes */}
+                <Route element={<RoleRoute allowedRoles={['owner', 'property_manager', 'super_admin']} />}>
+                  <Route path="/dashboard" element={<OwnerDashboardEnhanced />} />
+                  <Route path="/properties" element={<PropertiesPage />} />
+                  <Route path="/properties/:id" element={<PropertyDetailPage />} />
+                  <Route path="/finances" element={<FinancesPage />} />
+                  <Route path="/maintenance" element={<MaintenancePage />} />
+                  <Route path="/residents" element={<ResidentsPage />} />
+                  <Route path="/documents" element={<DocumentsPage />} />
+                </Route>
+              </Route>
+            </Route>
+
+            {/* Catch all - redirect to home */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BidProvider>
+        </AppProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

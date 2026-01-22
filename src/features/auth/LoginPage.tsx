@@ -1,43 +1,121 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Building2, Mail, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { signIn, user } = useAuth();
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      redirectBasedOnRole(user.role);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const redirectBasedOnRole = (role: string) => {
+    if (role === 'tenant') {
+      navigate('/tenant', { replace: true });
+    } else if (['owner', 'property_manager', 'super_admin'].includes(role)) {
+      navigate('/dashboard', { replace: true });
+    } else {
+      navigate('/', { replace: true });
+    }
+  };
+
+  const validateForm = (): boolean => {
+    // Check if fields are empty
+    if (!email.trim() || !password.trim()) {
+      setError('Please fill in all fields');
+      return false;
+    }
+
+    // Check email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const success = await login(email, password);
-      if (!success) {
-        setError('Invalid email or password');
-      }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
+      await signIn(email, password);
+      // Get updated user from context after successful sign in
+      // Redirect will happen via useEffect when user state updates
+    } catch (err: any) {
+      setError(err.message || 'An error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
   const demoAccounts = [
-    { email: 'tenant@okey.com', password: 'tenant123', role: 'Tenant' },
-    { email: 'owner@okey.com', password: 'owner123', role: 'Owner' },
-    { email: 'admin@okey.com', password: 'admin123', role: 'Admin' },
+    {
+      email: 'tenant@okey.com',
+      password: 'tenant123',
+      role: 'Tenant',
+      description: 'Access tenant portal',
+      color: 'bg-blue-50 border-blue-200 hover:bg-blue-100'
+    },
+    {
+      email: 'owner@okey.com',
+      password: 'owner123',
+      role: 'Owner',
+      description: 'Manage properties',
+      color: 'bg-purple-50 border-purple-200 hover:bg-purple-100'
+    },
+    {
+      email: 'manager@okey.com',
+      password: 'manager123',
+      role: 'Manager',
+      description: 'Property management',
+      color: 'bg-green-50 border-green-200 hover:bg-green-100'
+    },
+    {
+      email: 'admin@okey.com',
+      password: 'admin123',
+      role: 'Admin',
+      description: 'System administration',
+      color: 'bg-red-50 border-red-200 hover:bg-red-100'
+    },
   ];
 
   const fillDemo = (email: string, password: string) => {
     setEmail(email);
     setPassword(password);
     setError('');
+  };
+
+  // Clear error when user starts typing
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    if (error) setError('');
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    if (error) setError('');
   };
 
   return (
@@ -134,8 +212,9 @@ export function LoginPage() {
                     id="email"
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    onChange={handleEmailChange}
+                    disabled={isLoading}
+                    className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="you@example.com"
                     required
                   />
@@ -152,8 +231,9 @@ export function LoginPage() {
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-11 pr-11 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    onChange={handlePasswordChange}
+                    disabled={isLoading}
+                    className="w-full pl-11 pr-11 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     placeholder="Enter your password"
                     required
                   />
@@ -195,22 +275,25 @@ export function LoginPage() {
 
             {/* Demo Accounts */}
             <div className="mt-8 pt-6 border-t border-gray-200">
-              <p className="text-sm font-medium text-gray-700 mb-3">Demo Accounts</p>
-              <div className="space-y-2">
+              <p className="text-sm font-semibold text-gray-900 mb-1">Quick Demo Login</p>
+              <p className="text-xs text-gray-600 mb-3">Click any account to auto-fill and try the platform</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {demoAccounts.map((account) => (
                   <button
                     key={account.email}
                     onClick={() => fillDemo(account.email, account.password)}
-                    className="w-full p-3 text-left bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200"
+                    disabled={isLoading}
+                    className={`p-3 text-left rounded-lg transition-all border ${account.color} disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">{account.role}</div>
-                        <div className="text-xs text-gray-600">{account.email}</div>
+                    <div className="flex flex-col">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-sm font-semibold text-gray-900">{account.role}</span>
+                        <span className="text-xs text-gray-500 font-mono bg-white px-2 py-0.5 rounded border border-gray-300">
+                          {account.password}
+                        </span>
                       </div>
-                      <div className="text-xs text-gray-500 font-mono bg-white px-2 py-1 rounded border">
-                        {account.password}
-                      </div>
+                      <div className="text-xs text-gray-600 mb-1">{account.email}</div>
+                      <div className="text-xs text-gray-500 italic">{account.description}</div>
                     </div>
                   </button>
                 ))}
