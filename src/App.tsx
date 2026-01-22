@@ -24,6 +24,9 @@ import CalendarPage from './pages/owner/CalendarPage';
 import TaskManagement from './pages/owner/TaskManagement';
 import UnitsManagement from './pages/owner/UnitsManagement';
 import ScheduledMaintenance from './pages/owner/ScheduledMaintenance';
+import MaintenanceLogbook from './pages/owner/compliance/MaintenanceLogbook';
+import ContingencyFund from './pages/owner/compliance/ContingencyFund';
+import SalesCertificates from './pages/owner/compliance/SalesCertificates';
 import MarketplaceHome from './pages/marketplace/MarketplaceHome';
 import PropertySearch from './pages/marketplace/PropertySearch';
 import PropertyDetail from './pages/marketplace/PropertyDetail';
@@ -137,6 +140,9 @@ function App() {
                   <Route path="tasks" element={<TaskManagement />} />
                   <Route path="maintenance" element={<OwnerMaintenancePage />} />
                   <Route path="maintenance/scheduled" element={<ScheduledMaintenance />} />
+                  <Route path="compliance/logbook" element={<MaintenanceLogbook />} />
+                  <Route path="compliance/contingency-fund" element={<ContingencyFund />} />
+                  <Route path="compliance/sales-certificates" element={<SalesCertificates />} />
                   <Route path="documents" element={<OwnerDocumentsPage />} />
                   <Route path="meetings" element={<OwnerMeetingsPage />} />
                   <Route path="analytics" element={<PortfolioAnalytics />} />
