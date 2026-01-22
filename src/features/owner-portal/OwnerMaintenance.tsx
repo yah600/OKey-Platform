@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, ChevronRight, Wrench, Clock, DollarSign, AlertCircle, Filter, Calendar, User, X, Plus } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { getPropertiesByOwner, getIssuesByProperty, getUserById } from '@/lib/mockData';
+import { getPropertiesByOwner, getIssuesByProperty, getUserById } from '@/lib/data/mockData';
 
 type TabType = 'all' | 'pending' | 'in_progress' | 'completed' | 'scheduled';
 type PriorityFilter = 'all' | 'emergency' | 'high' | 'medium' | 'low';

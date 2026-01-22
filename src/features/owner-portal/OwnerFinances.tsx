@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, ChevronRight, TrendingUp, TrendingDown, DollarSign, AlertCircle, Download, FileText, Plus, Filter } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { getPropertiesByOwner, getTransactionsByProperty, getBillsByProperty } from '@/lib/mockData';
+import { getPropertiesByOwner, getTransactionsByProperty, getBillsByProperty } from '@/lib/data/mockData';
 
 type TimePeriod = 'month' | '3months' | '6months' | 'year' | 'lastyear' | 'custom';
 type TransactionTab = 'all' | 'income' | 'expenses' | 'pending';

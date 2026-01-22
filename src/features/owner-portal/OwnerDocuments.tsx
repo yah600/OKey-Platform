@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, ChevronRight, FileText, Upload, Folder, File, Image, Download, Share2, Trash2, Eye, X, Check } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { getPropertiesByOwner, getDocumentsByOwner } from '@/lib/mockData';
+import { getPropertiesByOwner, getDocumentsByOwner } from '@/lib/data/mockData';
 
 type ViewMode = 'grid' | 'list';
 

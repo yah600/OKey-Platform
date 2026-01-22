@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, ChevronRight, User, Calendar, DollarSign, Mail, Phone, FileText, Wrench, MessageSquare, X, Plus, Download } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { getPropertiesByOwner, getLeasesByProperty, getUserById, getBillsByTenant, getIssuesByReporter, getTransactionsByUser } from '@/lib/mockData';
+import { getPropertiesByOwner, getLeasesByProperty, getUserById, getBillsByTenant, getIssuesByReporter, getTransactionsByUser } from '@/lib/data/mockData';
 
 type ViewMode = 'grid' | 'list';
 type LeaseStatusFilter = 'all' | 'active' | 'expiring' | 'expired' | 'pending';
