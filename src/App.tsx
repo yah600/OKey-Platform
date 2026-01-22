@@ -1,8 +1,12 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import LoginPage from './pages/auth/LoginPage';
-import MarketplaceHome from './pages/marketplace/MarketplaceHome';
+import DashboardLayout from './layouts/DashboardLayout';
 import TenantDashboard from './pages/tenant/TenantDashboard';
+import PaymentsPage from './pages/tenant/PaymentsPage';
+import MaintenancePage from './pages/tenant/MaintenancePage';
+import DocumentsPage from './pages/tenant/DocumentsPage';
+import MessagesPage from './pages/tenant/MessagesPage';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
 
 function PrivateRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
@@ -22,7 +26,6 @@ function PrivateRoute({ children, allowedRoles }: { children: React.ReactNode; a
 function App() {
   const { isAuthenticated, user } = useAuthStore();
 
-  // Redirect based on role after login
   const DashboardRedirect = () => {
     if (!isAuthenticated || !user) {
       return <Navigate to="/login" />;
@@ -34,42 +37,43 @@ function App() {
       return <Navigate to="/owner/dashboard" />;
     }
 
-    return <Navigate to="/marketplace" />;
+    return <Navigate to="/login" />;
   };
 
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-
         <Route path="/dashboard" element={<DashboardRedirect />} />
 
         {/* Tenant Routes */}
         <Route
-          path="/tenant/dashboard"
+          path="/tenant/*"
           element={
             <PrivateRoute allowedRoles={['tenant']}>
-              <TenantDashboard />
+              <DashboardLayout>
+                <Routes>
+                  <Route path="dashboard" element={<TenantDashboard />} />
+                  <Route path="payments" element={<PaymentsPage />} />
+                  <Route path="maintenance" element={<MaintenancePage />} />
+                  <Route path="documents" element={<DocumentsPage />} />
+                  <Route path="messages" element={<MessagesPage />} />
+                </Routes>
+              </DashboardLayout>
             </PrivateRoute>
           }
         />
 
         {/* Owner Routes */}
         <Route
-          path="/owner/dashboard"
+          path="/owner/*"
           element={
             <PrivateRoute allowedRoles={['owner', 'admin']}>
-              <OwnerDashboard />
-            </PrivateRoute>
-          }
-        />
-
-        {/* Marketplace */}
-        <Route
-          path="/marketplace"
-          element={
-            <PrivateRoute>
-              <MarketplaceHome />
+              <DashboardLayout>
+                <Routes>
+                  <Route path="dashboard" element={<OwnerDashboard />} />
+                </Routes>
+              </DashboardLayout>
             </PrivateRoute>
           }
         />
