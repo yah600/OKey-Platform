@@ -13,6 +13,9 @@ import ResidentsPage from './pages/owner/ResidentsPage';
 import FinancialsPage from './pages/owner/FinancialsPage';
 import OwnerMaintenancePage from './pages/owner/OwnerMaintenancePage';
 import OwnerDocumentsPage from './pages/owner/OwnerDocumentsPage';
+import OwnerMeetingsPage from './pages/owner/OwnerMeetingsPage';
+import OwnerSettingsPage from './pages/owner/OwnerSettingsPage';
+import PortfolioAnalytics from './pages/owner/PortfolioAnalytics';
 import MarketplaceHome from './pages/marketplace/MarketplaceHome';
 import PropertySearch from './pages/marketplace/PropertySearch';
 import PropertyDetail from './pages/marketplace/PropertyDetail';
@@ -104,6 +107,9 @@ function App() {
                   <Route path="financials" element={<FinancialsPage />} />
                   <Route path="maintenance" element={<OwnerMaintenancePage />} />
                   <Route path="documents" element={<OwnerDocumentsPage />} />
+                  <Route path="meetings" element={<OwnerMeetingsPage />} />
+                  <Route path="analytics" element={<PortfolioAnalytics />} />
+                  <Route path="settings" element={<OwnerSettingsPage />} />
                 </Routes>
               </DashboardLayout>
             </PrivateRoute>

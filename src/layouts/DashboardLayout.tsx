@@ -1,18 +1,20 @@
 import { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { 
-  Home, 
-  DollarSign, 
-  Wrench, 
-  FileText, 
-  Mail, 
+import {
+  Home,
+  DollarSign,
+  Wrench,
+  FileText,
+  Mail,
   User,
   LogOut,
   Building2,
   Users,
   BarChart3,
-  Calendar
+  Calendar,
+  TrendingUp,
+  Settings
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 
@@ -40,6 +42,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: 'Financials', path: '/owner/financials', icon: BarChart3 },
     { name: 'Maintenance', path: '/owner/maintenance', icon: Wrench },
     { name: 'Documents', path: '/owner/documents', icon: FileText },
+    { name: 'Meetings', path: '/owner/meetings', icon: Calendar },
+    { name: 'Analytics', path: '/owner/analytics', icon: TrendingUp },
+    { name: 'Settings', path: '/owner/settings', icon: Settings },
   ];
 
   const navigation = user?.role === 'tenant' ? tenantNav : ownerNav;
