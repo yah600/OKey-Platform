@@ -7,6 +7,7 @@ import PaymentsPage from './pages/tenant/PaymentsPage';
 import MaintenancePage from './pages/tenant/MaintenancePage';
 import DocumentsPage from './pages/tenant/DocumentsPage';
 import MessagesPage from './pages/tenant/MessagesPage';
+import TenantProfile from './pages/tenant/TenantProfile';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
 import PropertiesPage from './pages/owner/PropertiesPage';
 import ResidentsPage from './pages/owner/ResidentsPage';
@@ -101,6 +102,7 @@ function App() {
                   <Route path="maintenance" element={<MaintenancePage />} />
                   <Route path="documents" element={<DocumentsPage />} />
                   <Route path="messages" element={<MessagesPage />} />
+                  <Route path="profile" element={<TenantProfile />} />
                 </Routes>
               </DashboardLayout>
             </PrivateRoute>

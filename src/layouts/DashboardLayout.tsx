@@ -53,6 +53,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: 'Maintenance', path: '/tenant/maintenance', icon: Wrench },
     { name: 'Documents', path: '/tenant/documents', icon: FileText },
     { name: 'Messages', path: '/tenant/messages', icon: Mail },
+    { name: 'Profile', path: '/tenant/profile', icon: User },
     { name: 'Help', path: '/help', icon: HelpCircle },
   ];
 
