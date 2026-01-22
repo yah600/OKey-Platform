@@ -864,3 +864,28 @@ export function getActiveAuctions(): Unit[] {
 export const getUnitsByPropertyId = getUnitsByProperty;
 export const getBidsByUnitId = getBidsByUnit;
 export const getBidsByUserId = getBidsByUser;
+
+// Additional helper functions
+export function getLeasesByProperty(propertyId: string): Lease[] {
+  const units = getUnitsByProperty(propertyId);
+  const unitIds = units.map(u => u.id);
+  return mockLeases.filter(l => unitIds.includes(l.unit_id));
+}
+
+export function getTransactionsByProperty(propertyId: string): Transaction[] {
+  return mockTransactions.filter(t => t.property_id === propertyId).sort((a, b) =>
+    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+}
+
+export function getDocumentsByOwner(ownerId: string): Document[] {
+  const properties = getPropertiesByOwner(ownerId);
+  const propertyIds = properties.map(p => p.id);
+  return mockDocuments.filter(d => d.property_id && propertyIds.includes(d.property_id));
+}
+
+export function getBillsByProperty(propertyId: string): Bill[] {
+  const leases = getLeasesByProperty(propertyId);
+  const tenantIds = leases.map(l => l.tenant_id);
+  return mockBills.filter(b => tenantIds.includes(b.tenant_id));
+}
