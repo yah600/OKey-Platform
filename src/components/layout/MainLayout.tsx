@@ -1,6 +1,8 @@
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { LogOut, User, Home, Search, TrendingUp, Briefcase, Building2 } from 'lucide-react';
+import { MobileNav } from './MobileNav';
+import { ThemeToggle } from '@/components/global/ThemeToggle';
 
 export function MainLayout() {
   const { user, isAuthenticated, signOut } = useAuth();
@@ -130,6 +132,11 @@ export function MainLayout() {
 
                   <div className="h-8 w-px bg-gray-300"></div>
 
+                  {/* Theme Toggle */}
+                  <ThemeToggle />
+
+                  <div className="h-8 w-px bg-gray-300"></div>
+
                   {/* User Menu */}
                   <div className="flex items-center gap-3">
                     <Link
@@ -173,7 +180,12 @@ export function MainLayout() {
       </nav>
 
       {/* Page Content */}
-      <Outlet />
+      <main className="pb-20 md:pb-0">
+        <Outlet />
+      </main>
+
+      {/* Mobile Navigation */}
+      <MobileNav />
     </div>
   );
 }

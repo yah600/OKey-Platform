@@ -1,46 +1,73 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { useAuthStore } from './store/authStore';
-import LoginPage from './pages/auth/LoginPage';
-import DashboardLayout from './layouts/DashboardLayout';
-import TenantDashboard from './pages/tenant/TenantDashboard';
-import PaymentsPage from './pages/tenant/PaymentsPage';
-import MaintenancePage from './pages/tenant/MaintenancePage';
-import DocumentsPage from './pages/tenant/DocumentsPage';
-import MessagesPage from './pages/tenant/MessagesPage';
-import TenantProfile from './pages/tenant/TenantProfile';
-import OwnerDashboard from './pages/owner/OwnerDashboard';
-import PropertiesPage from './pages/owner/PropertiesPage';
-import ResidentsPage from './pages/owner/ResidentsPage';
-import FinancialsPage from './pages/owner/FinancialsPage';
-import FinancialReports from './pages/owner/FinancialReports';
-import OwnerMaintenancePage from './pages/owner/OwnerMaintenancePage';
-import OwnerDocumentsPage from './pages/owner/OwnerDocumentsPage';
-import OwnerMeetingsPage from './pages/owner/OwnerMeetingsPage';
-import OwnerSettingsPage from './pages/owner/OwnerSettingsPage';
-import PortfolioAnalytics from './pages/owner/PortfolioAnalytics';
-import PropertyDetailPage from './pages/owner/PropertyDetailPage';
-import ResidentDetailPage from './pages/owner/ResidentDetailPage';
-import VendorManagement from './pages/owner/VendorManagement';
-import CalendarPage from './pages/owner/CalendarPage';
-import TaskManagement from './pages/owner/TaskManagement';
-import UnitsManagement from './pages/owner/UnitsManagement';
-import ScheduledMaintenance from './pages/owner/ScheduledMaintenance';
-import MaintenanceLogbook from './pages/owner/compliance/MaintenanceLogbook';
-import ContingencyFund from './pages/owner/compliance/ContingencyFund';
-import SalesCertificates from './pages/owner/compliance/SalesCertificates';
-import CommonSystemsInventory from './pages/owner/compliance/CommonSystemsInventory';
-import OwnerResponsibilities from './pages/owner/compliance/OwnerResponsibilities';
-import MarketplaceHome from './pages/marketplace/MarketplaceHome';
-import PropertySearch from './pages/marketplace/PropertySearch';
-import PropertyDetail from './pages/marketplace/PropertyDetail';
-import UnitDetail from './pages/marketplace/UnitDetail';
-import MyBids from './pages/marketplace/MyBids';
-import HelpCenter from './pages/HelpCenter';
-import AllNotifications from './pages/AllNotifications';
-import GlobalSearch from './pages/GlobalSearch';
-import NotFound from './pages/errors/NotFound';
-import AccessDenied from './pages/errors/AccessDenied';
+import { LoadingScreen } from './components/global/LoadingScreen';
+
+// Lazy load all page components for code splitting
+const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
+const DashboardLayout = lazy(() => import('./layouts/DashboardLayout'));
+
+// Marketplace pages
+const MarketplaceHome = lazy(() => import('./pages/marketplace/MarketplaceHome'));
+const PropertySearch = lazy(() => import('./pages/marketplace/PropertySearch'));
+const PropertyDetail = lazy(() => import('./pages/marketplace/PropertyDetail'));
+const UnitDetail = lazy(() => import('./pages/marketplace/UnitDetail'));
+const MyBids = lazy(() => import('./pages/marketplace/MyBids'));
+
+// Tenant pages
+const TenantDashboard = lazy(() => import('./pages/tenant/TenantDashboard'));
+const PaymentsPage = lazy(() => import('./pages/tenant/PaymentsPage'));
+const MaintenancePage = lazy(() => import('./pages/tenant/MaintenancePage'));
+const DocumentsPage = lazy(() => import('./pages/tenant/DocumentsPage'));
+const MessagesPage = lazy(() => import('./pages/tenant/MessagesPage'));
+const TenantProfile = lazy(() => import('./pages/tenant/TenantProfile'));
+
+// Owner pages
+const OwnerDashboard = lazy(() => import('./pages/owner/OwnerDashboard'));
+const PropertiesPage = lazy(() => import('./pages/owner/PropertiesPage'));
+const PropertyDetailPage = lazy(() => import('./pages/owner/PropertyDetailPage'));
+const UtilityManagement = lazy(() => import('./pages/owner/UtilityManagement'));
+const ParkingAmenities = lazy(() => import('./pages/owner/ParkingAmenities'));
+const VisitorManagement = lazy(() => import('./pages/owner/VisitorManagement'));
+const EmergencyProtocols = lazy(() => import('./pages/owner/EmergencyProtocols'));
+const BulkOperations = lazy(() => import('./pages/owner/BulkOperations'));
+const UnitsManagement = lazy(() => import('./pages/owner/UnitsManagement'));
+const ResidentsPage = lazy(() => import('./pages/owner/ResidentsPage'));
+const ResidentDetailPage = lazy(() => import('./pages/owner/ResidentDetailPage'));
+const TenantScreening = lazy(() => import('./pages/owner/TenantScreening'));
+const LeaseBuilder = lazy(() => import('./pages/owner/LeaseBuilder'));
+const MoveInChecklist = lazy(() => import('./pages/owner/MoveInChecklist'));
+const MoveOutChecklist = lazy(() => import('./pages/owner/MoveOutChecklist'));
+const FinancialsPage = lazy(() => import('./pages/owner/FinancialsPage'));
+const FinancialReports = lazy(() => import('./pages/owner/FinancialReports'));
+const ExpenseTracking = lazy(() => import('./pages/owner/ExpenseTracking'));
+const TaxDocuments = lazy(() => import('./pages/owner/TaxDocuments'));
+const OwnerMaintenancePage = lazy(() => import('./pages/owner/OwnerMaintenancePage'));
+const ScheduledMaintenance = lazy(() => import('./pages/owner/ScheduledMaintenance'));
+const OwnerDocumentsPage = lazy(() => import('./pages/owner/OwnerDocumentsPage'));
+const OwnerMeetingsPage = lazy(() => import('./pages/owner/OwnerMeetingsPage'));
+const OwnerSettingsPage = lazy(() => import('./pages/owner/OwnerSettingsPage'));
+const PortfolioAnalytics = lazy(() => import('./pages/owner/PortfolioAnalytics'));
+const VendorManagement = lazy(() => import('./pages/owner/VendorManagement'));
+const CalendarPage = lazy(() => import('./pages/owner/CalendarPage'));
+const TaskManagement = lazy(() => import('./pages/owner/TaskManagement'));
+
+// Quebec Law 16 Compliance pages
+const MaintenanceLogbook = lazy(() => import('./pages/owner/compliance/MaintenanceLogbook'));
+const ContingencyFund = lazy(() => import('./pages/owner/compliance/ContingencyFund'));
+const SalesCertificates = lazy(() => import('./pages/owner/compliance/SalesCertificates'));
+const CommonSystemsInventory = lazy(() => import('./pages/owner/compliance/CommonSystemsInventory'));
+const OwnerResponsibilities = lazy(() => import('./pages/owner/compliance/OwnerResponsibilities'));
+
+// Shared pages
+const HelpCenter = lazy(() => import('./pages/HelpCenter'));
+const AllNotifications = lazy(() => import('./pages/AllNotifications'));
+const GlobalSearch = lazy(() => import('./pages/GlobalSearch'));
+
+// Error pages
+const NotFound = lazy(() => import('./pages/errors/NotFound'));
+const AccessDenied = lazy(() => import('./pages/errors/AccessDenied'));
 
 function PrivateRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: string[] }) {
   const { isAuthenticated, user } = useAuthStore();
@@ -77,7 +104,8 @@ function App() {
     <>
       <Toaster position="top-right" richColors />
       <BrowserRouter>
-        <Routes>
+        <Suspense fallback={<LoadingScreen />}>
+          <Routes>
         {/* Public Marketplace Routes */}
         <Route path="/" element={<MarketplaceHome />} />
         <Route path="/marketplace/search" element={<PropertySearch />} />
@@ -160,11 +188,18 @@ function App() {
                   <Route path="dashboard" element={<OwnerDashboard />} />
                   <Route path="properties" element={<PropertiesPage />} />
                   <Route path="properties/:id" element={<PropertyDetailPage />} />
+                  <Route path="utilities" element={<UtilityManagement />} />
                   <Route path="properties/:propertyId/units" element={<UnitsManagement />} />
                   <Route path="residents" element={<ResidentsPage />} />
                   <Route path="residents/:id" element={<ResidentDetailPage />} />
+                  <Route path="screening" element={<TenantScreening />} />
+                  <Route path="lease/new" element={<LeaseBuilder />} />
+                  <Route path="checklist/move-in" element={<MoveInChecklist />} />
+                  <Route path="checklist/move-out" element={<MoveOutChecklist />} />
                   <Route path="financials" element={<FinancialsPage />} />
                   <Route path="financials/reports" element={<FinancialReports />} />
+                  <Route path="financials/expenses" element={<ExpenseTracking />} />
+                  <Route path="financials/tax-documents" element={<TaxDocuments />} />
                   <Route path="vendors" element={<VendorManagement />} />
                   <Route path="calendar" element={<CalendarPage />} />
                   <Route path="tasks" element={<TaskManagement />} />
@@ -179,6 +214,10 @@ function App() {
                   <Route path="meetings" element={<OwnerMeetingsPage />} />
                   <Route path="analytics" element={<PortfolioAnalytics />} />
                   <Route path="settings" element={<OwnerSettingsPage />} />
+                  <Route path="parking" element={<ParkingAmenities />} />
+                  <Route path="visitors" element={<VisitorManagement />} />
+                  <Route path="emergency" element={<EmergencyProtocols />} />
+                  <Route path="bulk-operations" element={<BulkOperations />} />
                 </Routes>
               </DashboardLayout>
             </PrivateRoute>
@@ -188,7 +227,8 @@ function App() {
         {/* Error Routes */}
         <Route path="/403" element={<AccessDenied />} />
         <Route path="*" element={<NotFound />} />
-        </Routes>
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </>
   );
