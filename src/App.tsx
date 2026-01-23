@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { useAuthStore } from './store/authStore';
 import LoginPage from './pages/auth/LoginPage';
 import DashboardLayout from './layouts/DashboardLayout';
@@ -73,8 +74,10 @@ function App() {
   };
 
   return (
-    <BrowserRouter>
-      <Routes>
+    <>
+      <Toaster position="top-right" richColors />
+      <BrowserRouter>
+        <Routes>
         {/* Public Marketplace Routes */}
         <Route path="/" element={<MarketplaceHome />} />
         <Route path="/marketplace/search" element={<PropertySearch />} />
@@ -185,8 +188,9 @@ function App() {
         {/* Error Routes */}
         <Route path="/403" element={<AccessDenied />} />
         <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 

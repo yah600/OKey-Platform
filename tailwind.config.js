@@ -80,8 +80,54 @@ export default {
           '0%': { backgroundPosition: '-200% 0' },
           '100%': { backgroundPosition: '200% 0' },
         },
+        spring: {
+          '0%': { transform: 'scale(0.95)', opacity: '0' },
+          '50%': { transform: 'scale(1.02)' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+      },
+      // Apple-style backdrop blur
+      backdropBlur: {
+        xs: '2px',
+        sm: '4px',
+        DEFAULT: '8px',
+        md: '12px',
+        lg: '16px',
+        xl: '24px',
+        '2xl': '40px',
+        '3xl': '64px',
+      },
+      // Translucent backgrounds for glassmorphism
+      backgroundColor: {
+        'glass': 'rgba(255, 255, 255, 0.7)',
+        'glass-dark': 'rgba(0, 0, 0, 0.3)',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function({ addUtilities }) {
+      const newUtilities = {
+        '.glass': {
+          'background': 'rgba(255, 255, 255, 0.7)',
+          'backdrop-filter': 'blur(12px) saturate(180%)',
+          '-webkit-backdrop-filter': 'blur(12px) saturate(180%)',
+          'border': '1px solid rgba(255, 255, 255, 0.18)',
+        },
+        '.glass-dark': {
+          'background': 'rgba(0, 0, 0, 0.3)',
+          'backdrop-filter': 'blur(12px) saturate(180%)',
+          '-webkit-backdrop-filter': 'blur(12px) saturate(180%)',
+          'border': '1px solid rgba(255, 255, 255, 0.1)',
+        },
+        '.glass-card': {
+          'background': 'rgba(255, 255, 255, 0.8)',
+          'backdrop-filter': 'blur(16px) saturate(200%)',
+          '-webkit-backdrop-filter': 'blur(16px) saturate(200%)',
+          'box-shadow': '0 8px 32px 0 rgba(0, 0, 0, 0.08)',
+          'border': '1px solid rgba(255, 255, 255, 0.2)',
+        },
+      }
+      addUtilities(newUtilities)
+    }
+  ],
 }

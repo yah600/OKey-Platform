@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bed, Bath, Maximize, DollarSign, Calendar, TrendingUp, Shield } from 'lucide-react';
+import { ArrowLeft, Bed, Bath, Maximize, Calendar, TrendingUp, Shield } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Loading from '../../components/ui/Loading';
+import BidModal from '../../components/organisms/BidModal';
 
 export default function UnitDetail() {
   const { propertyId, unitId } = useParams();
@@ -17,8 +18,6 @@ export default function UnitDetail() {
   }, []);
   const { isAuthenticated } = useAuthStore();
   const [showBidModal, setShowBidModal] = useState(false);
-  const [bidAmount, setBidAmount] = useState('');
-  const [moveInDate, setMoveInDate] = useState('');
 
   // Mock unit data
   const unit = {
@@ -54,14 +53,6 @@ export default function UnitDetail() {
       return;
     }
     setShowBidModal(true);
-  };
-
-  const submitBid = () => {
-    // Mock bid submission
-    alert(`Bid placed successfully!\nAmount: $${bidAmount}\nMove-in Date: ${moveInDate}`);
-    setShowBidModal(false);
-    setBidAmount('');
-    setMoveInDate('');
   };
 
   if (isLoading) {
@@ -222,75 +213,20 @@ export default function UnitDetail() {
       </div>
 
       {/* Bid Modal */}
-      {showBidModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md">
-            <h2 className="text-lg font-semibold text-neutral-900 mb-4">Place Your Bid</h2>
-
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="block text-xs text-neutral-600 mb-1">
-                  Monthly Bid Amount *
-                </label>
-                <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
-                  <input
-                    type="number"
-                    value={bidAmount}
-                    onChange={(e) => setBidAmount(e.target.value)}
-                    placeholder={unit.rent.toString()}
-                    className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  />
-                </div>
-                <p className="text-xs text-neutral-500 mt-1">
-                  Minimum: ${unit.rent}
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs text-neutral-600 mb-1">
-                  Preferred Move-In Date *
-                </label>
-                <input
-                  type="date"
-                  value={moveInDate}
-                  onChange={(e) => setMoveInDate(e.target.value)}
-                  min={unit.availableDate}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                />
-              </div>
-
-              <div className="p-3 bg-amber-50 rounded-lg">
-                <p className="text-xs text-amber-800">
-                  Your O'Key Score and rental history will be reviewed with your bid.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setShowBidModal(false);
-                  setBidAmount('');
-                  setMoveInDate('');
-                }}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="primary"
-                onClick={submitBid}
-                disabled={!bidAmount || !moveInDate || parseInt(bidAmount) < unit.rent}
-                className="flex-1"
-              >
-                Submit Bid
-              </Button>
-            </div>
-          </Card>
-        </div>
-      )}
+      <BidModal
+        isOpen={showBidModal}
+        onClose={() => setShowBidModal(false)}
+        unit={{
+          id: unit.id,
+          propertyId: propertyId || '1',
+          number: unit.number,
+          propertyName: unit.propertyName,
+          address: unit.address,
+          rent: unit.rent,
+          availableDate: unit.availableDate,
+          okeyScoreRequired: unit.okeyScoreRequired,
+        }}
+      />
     </div>
   );
 }

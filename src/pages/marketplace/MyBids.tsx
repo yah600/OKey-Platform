@@ -1,95 +1,57 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { TrendingUp, Clock, CheckCircle, XCircle, Calendar } from 'lucide-react';
+import { TrendingUp, Clock, CheckCircle, XCircle, Calendar, Trash2 } from 'lucide-react';
+import { useAuthStore } from '../../store/authStore';
+import { useBidsStore } from '../../store/bidsStore';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Loading from '../../components/ui/Loading';
+import Badge from '../../components/ui/Badge';
+import EmptyState from '../../components/organisms/EmptyState';
+import { toast } from 'sonner';
 
 export default function MyBids() {
-  const [activeTab, setActiveTab] = useState<'active' | 'won' | 'lost' | 'expired'>('active');
+  const [activeTab, setActiveTab] = useState<'pending' | 'accepted' | 'rejected' | 'withdrawn'>('pending');
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuthStore();
+  const { bids: allBids, withdrawBid } = useBidsStore();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
 
-  const bids = [
-    {
-      id: 1,
-      propertyName: 'Sunset Apartments',
-      unit: '4B',
-      propertyId: '1',
-      unitId: '1',
-      bidAmount: 1850,
-      askingRent: 1800,
-      status: 'active',
-      submittedDate: '2026-01-20',
-      moveInDate: '2026-02-15',
-      image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=400&h=300&fit=crop',
-    },
-    {
-      id: 2,
-      propertyName: 'Downtown Plaza',
-      unit: '5A',
-      propertyId: '2',
-      unitId: '2',
-      bidAmount: 2300,
-      askingRent: 2200,
-      status: 'won',
-      submittedDate: '2026-01-18',
-      moveInDate: '2026-03-01',
-      image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&h=300&fit=crop',
-    },
-    {
-      id: 3,
-      propertyName: 'Urban Lofts',
-      unit: '3C',
-      propertyId: '4',
-      unitId: '3',
-      bidAmount: 2000,
-      askingRent: 1950,
-      status: 'lost',
-      submittedDate: '2026-01-15',
-      moveInDate: '2026-02-20',
-      image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=300&fit=crop',
-    },
-    {
-      id: 4,
-      propertyName: 'Garden Residences',
-      unit: '2A',
-      propertyId: '5',
-      unitId: '4',
-      bidAmount: 1800,
-      askingRent: 1750,
-      status: 'expired',
-      submittedDate: '2026-01-10',
-      moveInDate: '2026-02-01',
-      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&h=300&fit=crop',
-    },
-  ];
+  // Get bids for current user
+  const userBids = user ? allBids.filter(bid => bid.userId === user.id) : [];
 
   const tabs = [
-    { id: 'active', label: 'Active', count: bids.filter((b) => b.status === 'active').length },
-    { id: 'won', label: 'Won', count: bids.filter((b) => b.status === 'won').length },
-    { id: 'lost', label: 'Lost', count: bids.filter((b) => b.status === 'lost').length },
-    { id: 'expired', label: 'Expired', count: bids.filter((b) => b.status === 'expired').length },
+    { id: 'pending', label: 'Pending', count: userBids.filter((b) => b.status === 'pending').length },
+    { id: 'accepted', label: 'Accepted', count: userBids.filter((b) => b.status === 'accepted').length },
+    { id: 'rejected', label: 'Rejected', count: userBids.filter((b) => b.status === 'rejected').length },
+    { id: 'withdrawn', label: 'Withdrawn', count: userBids.filter((b) => b.status === 'withdrawn').length },
   ];
 
-  const filteredBids = bids.filter((bid) => bid.status === activeTab);
+  const filteredBids = userBids.filter((bid) => bid.status === activeTab);
+
+  const handleWithdrawBid = (bidId: string) => {
+    withdrawBid(bidId);
+    toast.success('Bid Withdrawn', {
+      description: 'Your bid has been withdrawn successfully.',
+    });
+  };
 
   const getStatusConfig = (status: string) => {
     switch (status) {
-      case 'active':
-        return { icon: Clock, color: 'text-blue-700', bg: 'bg-blue-100', label: 'Pending Review' };
-      case 'won':
-        return { icon: CheckCircle, color: 'text-green-700', bg: 'bg-green-100', label: 'Accepted' };
-      case 'lost':
-        return { icon: XCircle, color: 'text-red-700', bg: 'bg-red-100', label: 'Not Selected' };
-      case 'expired':
-        return { icon: Clock, color: 'text-neutral-700', bg: 'bg-neutral-100', label: 'Expired' };
+      case 'pending':
+        return { icon: Clock, color: 'text-blue-600', variant: 'primary' as const, label: 'Pending Review' };
+      case 'accepted':
+        return { icon: CheckCircle, color: 'text-green-600', variant: 'success' as const, label: 'Accepted' };
+      case 'rejected':
+        return { icon: XCircle, color: 'text-red-600', variant: 'error' as const, label: 'Not Selected' };
+      case 'withdrawn':
+        return { icon: XCircle, color: 'text-neutral-600', variant: 'secondary' as const, label: 'Withdrawn' };
       default:
-        return { icon: Clock, color: 'text-neutral-700', bg: 'bg-neutral-100', label: 'Unknown' };
+        return { icon: Clock, color: 'text-neutral-600', variant: 'secondary' as const, label: 'Unknown' };
     }
   };
 
@@ -159,44 +121,48 @@ export default function MyBids() {
               return (
                 <Card key={bid.id}>
                   <div className="flex gap-4">
-                    {/* Image */}
-                    <div className="w-32 h-24 bg-neutral-200 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
-                        src={bid.image}
-                        alt={bid.propertyName}
-                        className="w-full h-full object-cover"
-                      />
+                    {/* Image Placeholder */}
+                    <div className="w-32 h-24 bg-gradient-to-br from-primary-100 to-primary-200 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center">
+                      <TrendingUp className="w-8 h-8 text-primary-600" />
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="font-semibold text-neutral-900">
-                            {bid.propertyName} - Unit {bid.unit}
-                          </h3>
-                          <p className="text-xs text-neutral-600">
-                            Submitted {new Date(bid.submittedDate).toLocaleDateString('en-US', {
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold text-neutral-900">
+                              {bid.unitDetails.propertyName} - Unit {bid.unitDetails.number}
+                            </h3>
+                            <Badge variant={statusConfig.variant}>
+                              {statusConfig.label}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-neutral-600 mb-1">
+                            {bid.unitDetails.address}
+                          </p>
+                          <p className="text-xs text-neutral-500">
+                            Submitted {new Date(bid.createdAt).toLocaleDateString('en-US', {
                               month: 'short',
                               day: 'numeric',
                               year: 'numeric',
                             })}
                           </p>
                         </div>
-                        <span className={`text-xs px-2 py-1 rounded flex items-center gap-1 ${statusConfig.bg} ${statusConfig.color}`}>
-                          <StatusIcon className="w-3 h-3" />
-                          {statusConfig.label}
-                        </span>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div className="grid grid-cols-4 gap-4 text-sm mt-3">
                         <div>
                           <p className="text-xs text-neutral-600">Your Bid</p>
-                          <p className="font-semibold text-neutral-900">${bid.bidAmount}/mo</p>
+                          <p className="font-semibold text-green-600">${bid.amount}/mo</p>
                         </div>
                         <div>
                           <p className="text-xs text-neutral-600">Asking Rent</p>
-                          <p className="font-semibold text-neutral-900">${bid.askingRent}/mo</p>
+                          <p className="font-semibold text-neutral-900">${bid.unitDetails.rent}/mo</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-neutral-600">Lease Term</p>
+                          <p className="font-medium text-neutral-900">{bid.leaseTerm} months</p>
                         </div>
                         <div>
                           <p className="text-xs text-neutral-600">Move-In Date</p>
@@ -209,6 +175,12 @@ export default function MyBids() {
                         </div>
                       </div>
 
+                      {bid.message && (
+                        <div className="mt-3 p-2 bg-neutral-50 rounded text-xs text-neutral-600">
+                          <strong>Message:</strong> {bid.message}
+                        </div>
+                      )}
+
                       <div className="mt-3 pt-3 border-t border-neutral-100 flex items-center justify-between">
                         <Link
                           to={`/marketplace/property/${bid.propertyId}/unit/${bid.unitId}`}
@@ -216,16 +188,23 @@ export default function MyBids() {
                         >
                           View Unit Details →
                         </Link>
-                        {bid.status === 'won' && (
-                          <Button variant="primary" size="sm">
-                            Sign Lease
-                          </Button>
-                        )}
-                        {bid.status === 'active' && (
-                          <Button variant="secondary" size="sm">
-                            Withdraw Bid
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {bid.status === 'accepted' && (
+                            <Button variant="primary" size="sm">
+                              Sign Lease
+                            </Button>
+                          )}
+                          {bid.status === 'pending' && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleWithdrawBid(bid.id)}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                              Withdraw
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -234,22 +213,24 @@ export default function MyBids() {
             })}
           </div>
         ) : (
-          <Card className="text-center py-12">
-            <TrendingUp className="w-16 h-16 text-neutral-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-neutral-900 mb-2">
-              No {activeTab} bids
-            </h3>
-            <p className="text-sm text-neutral-600 mb-6">
-              {activeTab === 'active' && 'Start browsing properties to place your first bid'}
-              {activeTab === 'won' && 'You haven\'t won any bids yet'}
-              {activeTab === 'lost' && 'No lost bids to show'}
-              {activeTab === 'expired' && 'No expired bids'}
-            </p>
-            <Link to="/marketplace/search">
-              <Button variant="primary">
-                Browse Properties
-              </Button>
-            </Link>
+          <Card>
+            <EmptyState
+              icon={TrendingUp}
+              title={`No ${activeTab} bids`}
+              description={
+                activeTab === 'pending'
+                  ? 'Start browsing properties to place your first bid'
+                  : activeTab === 'accepted'
+                  ? "You haven't won any bids yet"
+                  : activeTab === 'rejected'
+                  ? 'No rejected bids to show'
+                  : 'No withdrawn bids'
+              }
+              action={{
+                label: 'Browse Properties',
+                onClick: () => window.location.href = '/marketplace/search',
+              }}
+            />
           </Card>
         )}
       </div>
