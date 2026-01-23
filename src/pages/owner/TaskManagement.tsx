@@ -12,81 +12,24 @@ import Input from '../../components/atoms/Input';
 import Textarea from '../../components/atoms/Textarea';
 import Select from '../../components/molecules/Select';
 import Checkbox from '../../components/atoms/Checkbox';
+import { useAuthStore } from '../../store/authStore';
+import { useTaskStore } from '../../store/taskStore';
+import { toast } from 'sonner';
 
 export default function TaskManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const { user } = useAuthStore();
+  const { getTasksByOwner, toggleTaskStatus, deleteTask } = useTaskStore();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
 
-  // Mock task data
-  const tasks = [
-    {
-      id: 1,
-      title: 'Review lease renewal for Unit 4B',
-      description: 'Check lease terms and prepare renewal documents',
-      property: 'Sunset Apartments',
-      priority: 'high',
-      status: 'pending',
-      dueDate: '2026-01-25',
-      assignedTo: 'Property Manager',
-    },
-    {
-      id: 2,
-      title: 'Schedule annual property inspection',
-      description: 'Coordinate with inspector for all properties',
-      property: 'All Properties',
-      priority: 'medium',
-      status: 'in-progress',
-      dueDate: '2026-01-28',
-      assignedTo: 'You',
-    },
-    {
-      id: 3,
-      title: 'Update insurance policies',
-      description: 'Review and renew property insurance',
-      property: 'Downtown Plaza',
-      priority: 'high',
-      status: 'pending',
-      dueDate: '2026-01-26',
-      assignedTo: 'You',
-    },
-    {
-      id: 4,
-      title: 'Prepare monthly financial reports',
-      description: 'Compile revenue and expense reports for January',
-      property: 'All Properties',
-      priority: 'medium',
-      status: 'in-progress',
-      dueDate: '2026-01-31',
-      assignedTo: 'Accountant',
-    },
-    {
-      id: 5,
-      title: 'Follow up with late rent payments',
-      description: 'Contact tenants with outstanding balances',
-      property: 'Urban Lofts',
-      priority: 'low',
-      status: 'completed',
-      dueDate: '2026-01-20',
-      assignedTo: 'Property Manager',
-    },
-    {
-      id: 6,
-      title: 'Schedule HVAC maintenance',
-      description: 'Book preventive maintenance for all units',
-      property: 'Sunset Apartments',
-      priority: 'low',
-      status: 'completed',
-      dueDate: '2026-01-15',
-      assignedTo: 'Maintenance Team',
-    },
-  ];
+  const tasks = user ? getTasksByOwner(user.id) : [];
 
   const tabs = [
     { id: 'all', label: 'All Tasks', count: tasks.length },
@@ -95,11 +38,34 @@ export default function TaskManagement() {
     { id: 'completed', label: 'Completed', count: tasks.filter((t) => t.status === 'completed').length },
   ];
 
+  const handleToggleStatus = (taskId: string) => {
+    toggleTaskStatus(taskId);
+    toast.success('Task Updated', {
+      description: 'Task status has been updated.',
+    });
+  };
+
+  const handleDeleteTask = (taskId: string, taskTitle: string) => {
+    if (window.confirm(`Are you sure you want to delete "${taskTitle}"?`)) {
+      deleteTask(taskId);
+      toast.success('Task Deleted', {
+        description: 'The task has been removed.',
+      });
+    }
+  };
+
+  const handleAddTask = () => {
+    toast.info('Add Task', {
+      description: 'Task creation form coming soon.',
+    });
+    setShowAddModal(false);
+  };
+
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
       task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       task.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.property.toLowerCase().includes(searchQuery.toLowerCase());
+      task.propertyName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesTab = activeTab === 'all' || task.status === activeTab;
     return matchesSearch && matchesTab;
   });
@@ -195,7 +161,7 @@ export default function TaskManagement() {
                   <div className="flex-shrink-0 mt-1">
                     <Checkbox
                       checked={task.status === 'completed'}
-                      onChange={() => {}}
+                      onChange={() => handleToggleStatus(task.id)}
                     />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -230,7 +196,7 @@ export default function TaskManagement() {
                         {task.assignedTo}
                       </span>
                       <Badge variant="secondary" className="text-xs">
-                        {task.property}
+                        {task.propertyName}
                       </Badge>
                     </div>
                   </div>
@@ -253,7 +219,7 @@ export default function TaskManagement() {
             <Button variant="secondary" onClick={() => setShowAddModal(false)}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={() => setShowAddModal(false)}>
+            <Button variant="primary" onClick={handleAddTask}>
               Create Task
             </Button>
           </>
