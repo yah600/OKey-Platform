@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Plus, CheckCircle, Circle, Clock, Flag, User } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Loading from '../../components/ui/Loading';
@@ -14,7 +17,19 @@ import Select from '../../components/molecules/Select';
 import Checkbox from '../../components/atoms/Checkbox';
 import { useAuthStore } from '../../store/authStore';
 import { useTaskStore } from '../../store/taskStore';
+import { useOwnerPropertiesStore } from '../../store/ownerPropertiesStore';
 import { toast } from 'sonner';
+
+const taskSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters'),
+  description: z.string().min(5, 'Description must be at least 5 characters'),
+  priority: z.enum(['low', 'medium', 'high']),
+  propertyName: z.string().min(1, 'Property is required'),
+  dueDate: z.string().min(1, 'Due date is required'),
+  assignedTo: z.string().min(1, 'Assignment is required'),
+});
+
+type TaskFormData = z.infer<typeof taskSchema>;
 
 export default function TaskManagement() {
   const [isLoading, setIsLoading] = useState(true);
@@ -22,7 +37,20 @@ export default function TaskManagement() {
   const [activeTab, setActiveTab] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const { user } = useAuthStore();
-  const { getTasksByOwner, toggleTaskStatus, deleteTask } = useTaskStore();
+  const { getTasksByOwner, toggleTaskStatus, deleteTask, addTask } = useTaskStore();
+  const { getPropertiesByOwner } = useOwnerPropertiesStore();
+
+  const form = useForm<TaskFormData>({
+    resolver: zodResolver(taskSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      priority: 'medium',
+      propertyName: '',
+      dueDate: '',
+      assignedTo: 'You',
+    },
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 400);
@@ -30,6 +58,12 @@ export default function TaskManagement() {
   }, []);
 
   const tasks = user ? getTasksByOwner(user.id) : [];
+  const properties = user ? getPropertiesByOwner(user.id) : [];
+
+  const propertyOptions = [
+    { value: 'all', label: 'All Properties' },
+    ...properties.map((p) => ({ value: p.name, label: p.name })),
+  ];
 
   const tabs = [
     { id: 'all', label: 'All Tasks', count: tasks.length },
@@ -54,12 +88,27 @@ export default function TaskManagement() {
     }
   };
 
-  const handleAddTask = () => {
-    toast.info('Add Task', {
-      description: 'Task creation form coming soon.',
+  const handleAddTask = form.handleSubmit((data) => {
+    if (!user) return;
+
+    addTask({
+      ownerId: user.id,
+      title: data.title,
+      description: data.description,
+      priority: data.priority,
+      propertyName: data.propertyName,
+      dueDate: data.dueDate,
+      assignedTo: data.assignedTo,
+      status: 'pending',
     });
+
+    toast.success('Task Created', {
+      description: `${data.title} has been added to your task list.`,
+    });
+
+    form.reset();
     setShowAddModal(false);
-  };
+  });
 
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch =
@@ -210,13 +259,19 @@ export default function TaskManagement() {
       {/* Add Task Modal */}
       <Modal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
+        onClose={() => {
+          setShowAddModal(false);
+          form.reset();
+        }}
         title="Create New Task"
         description="Add a new task to your list"
         size="md"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setShowAddModal(false)}>
+            <Button variant="secondary" onClick={() => {
+              setShowAddModal(false);
+              form.reset();
+            }}>
               Cancel
             </Button>
             <Button variant="primary" onClick={handleAddTask}>
@@ -225,12 +280,20 @@ export default function TaskManagement() {
           </>
         }
       >
-        <div className="space-y-4">
-          <Input label="Task Title" placeholder="e.g., Review lease renewal" required />
+        <form className="space-y-4">
+          <Input
+            label="Task Title"
+            placeholder="e.g., Review lease renewal"
+            required
+            {...form.register('title')}
+            error={form.formState.errors.title?.message}
+          />
           <Textarea
             label="Description"
             placeholder="Add details about the task..."
             rows={3}
+            {...form.register('description')}
+            error={form.formState.errors.description?.message}
           />
           <div className="grid grid-cols-2 gap-4">
             <Select
@@ -241,31 +304,37 @@ export default function TaskManagement() {
                 { value: 'high', label: 'High' },
               ]}
               required
+              {...form.register('priority')}
+              error={form.formState.errors.priority?.message}
             />
             <Select
               label="Property"
-              options={[
-                { value: 'all', label: 'All Properties' },
-                { value: 'sunset', label: 'Sunset Apartments' },
-                { value: 'downtown', label: 'Downtown Plaza' },
-                { value: 'urban', label: 'Urban Lofts' },
-              ]}
+              options={propertyOptions}
               required
+              {...form.register('propertyName')}
+              error={form.formState.errors.propertyName?.message}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Due Date" type="date" required />
+            <Input
+              label="Due Date"
+              type="date"
+              required
+              {...form.register('dueDate')}
+              error={form.formState.errors.dueDate?.message}
+            />
             <Select
               label="Assign To"
               options={[
-                { value: 'you', label: 'You' },
-                { value: 'manager', label: 'Property Manager' },
-                { value: 'accountant', label: 'Accountant' },
-                { value: 'maintenance', label: 'Maintenance Team' },
+                { value: 'You', label: 'You' },
+                { value: 'Property Manager', label: 'Property Manager' },
+                { value: 'Accountant', label: 'Accountant' },
+                { value: 'Maintenance Team', label: 'Maintenance Team' },
               ]}
+              {...form.register('assignedTo')}
             />
           </div>
-        </div>
+        </form>
       </Modal>
     </div>
   );
