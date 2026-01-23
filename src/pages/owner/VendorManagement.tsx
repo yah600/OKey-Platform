@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Phone, Mail, MapPin, Star, Edit, Trash2, Wrench } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Loading from '../../components/ui/Loading';
@@ -9,23 +12,70 @@ import Avatar from '../../components/atoms/Avatar';
 import EmptyState from '../../components/organisms/EmptyState';
 import Modal from '../../components/organisms/Modal';
 import Input from '../../components/atoms/Input';
+import Textarea from '../../components/atoms/Textarea';
 import Select from '../../components/molecules/Select';
 import { useAuthStore } from '../../store/authStore';
 import { useVendorStore } from '../../store/vendorStore';
 import { toast } from 'sonner';
 
+const vendorSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  category: z.enum(['Plumbing', 'HVAC', 'Electrical', 'Cleaning', 'Landscaping', 'Roofing', 'Painting', 'Other']),
+  phone: z.string().min(10, 'Phone number is required'),
+  email: z.string().email('Invalid email address'),
+  address: z.string().min(5, 'Address is required'),
+  notes: z.string().optional(),
+});
+
+type VendorFormData = z.infer<typeof vendorSchema>;
+
 export default function VendorManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingVendor, setEditingVendor] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const { user } = useAuthStore();
-  const { getVendorsByOwner, deleteVendor } = useVendorStore();
+  const { getVendorsByOwner, getVendorById, addVendor, updateVendor, deleteVendor } = useVendorStore();
+
+  const addForm = useForm<VendorFormData>({
+    resolver: zodResolver(vendorSchema),
+    defaultValues: {
+      name: '',
+      category: 'Other',
+      phone: '',
+      email: '',
+      address: '',
+      notes: '',
+    },
+  });
+
+  const editForm = useForm<VendorFormData>({
+    resolver: zodResolver(vendorSchema),
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
+
+  // Populate edit form when editing a vendor
+  useEffect(() => {
+    if (editingVendor) {
+      const vendor = getVendorById(editingVendor);
+      if (vendor) {
+        editForm.reset({
+          name: vendor.name,
+          category: vendor.category,
+          phone: vendor.phone,
+          email: vendor.email,
+          address: vendor.address,
+          notes: vendor.notes || '',
+        });
+      }
+    }
+  }, [editingVendor, getVendorById, editForm]);
 
   const vendors = user ? getVendorsByOwner(user.id) : [];
 
@@ -49,17 +99,51 @@ export default function VendorManagement() {
   };
 
   const handleEdit = (vendorId: string) => {
-    toast.info('Edit Vendor', {
-      description: 'Vendor editing coming soon.',
-    });
+    setEditingVendor(vendorId);
+    setShowEditModal(true);
   };
 
-  const handleAddVendor = () => {
-    toast.info('Add Vendor', {
-      description: 'Add vendor form coming soon.',
+  const handleAddVendor = addForm.handleSubmit((data) => {
+    if (!user) return;
+
+    addVendor({
+      ownerId: user.id,
+      name: data.name,
+      category: data.category,
+      phone: data.phone,
+      email: data.email,
+      address: data.address,
+      status: 'active',
+      notes: data.notes,
     });
+
+    toast.success('Vendor Added', {
+      description: `${data.name} has been added to your vendors.`,
+    });
+
+    addForm.reset();
     setShowAddModal(false);
-  };
+  });
+
+  const handleSaveEdit = editForm.handleSubmit((data) => {
+    if (!editingVendor) return;
+
+    updateVendor(editingVendor, {
+      name: data.name,
+      category: data.category,
+      phone: data.phone,
+      email: data.email,
+      address: data.address,
+      notes: data.notes,
+    });
+
+    toast.success('Vendor Updated', {
+      description: `${data.name} has been updated successfully.`,
+    });
+
+    setEditingVendor(null);
+    setShowEditModal(false);
+  });
 
   if (isLoading) {
     return (
@@ -179,13 +263,19 @@ export default function VendorManagement() {
       {/* Add Vendor Modal */}
       <Modal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
+        onClose={() => {
+          setShowAddModal(false);
+          addForm.reset();
+        }}
         title="Add New Vendor"
         description="Enter vendor information to add them to your list"
         size="md"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setShowAddModal(false)}>
+            <Button variant="secondary" onClick={() => {
+              setShowAddModal(false);
+              addForm.reset();
+            }}>
               Cancel
             </Button>
             <Button variant="primary" onClick={handleAddVendor}>
@@ -194,23 +284,130 @@ export default function VendorManagement() {
           </>
         }
       >
-        <div className="space-y-4">
-          <Input label="Vendor Name" placeholder="ABC Services Inc" required />
+        <form className="space-y-4">
+          <Input
+            label="Vendor Name"
+            placeholder="ABC Services Inc"
+            required
+            {...addForm.register('name')}
+            error={addForm.formState.errors.name?.message}
+          />
           <Select
             label="Category"
             options={categories
               .filter((c) => c !== 'all')
               .map((cat) => ({ value: cat, label: cat }))}
             required
+            {...addForm.register('category')}
+            error={addForm.formState.errors.category?.message}
           />
-          <Input label="Phone" type="tel" placeholder="+1 (555) 000-0000" required />
-          <Input label="Email" type="email" placeholder="contact@vendor.com" required />
-          <Input label="Address" placeholder="123 Service St, City, Province" />
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Rating" type="number" step="0.1" min="0" max="5" placeholder="4.5" />
-            <Input label="Hourly Rate" type="number" placeholder="75" />
+            <Input
+              label="Phone"
+              type="tel"
+              placeholder="+1 (555) 000-0000"
+              required
+              {...addForm.register('phone')}
+              error={addForm.formState.errors.phone?.message}
+            />
+            <Input
+              label="Email"
+              type="email"
+              placeholder="contact@vendor.com"
+              required
+              {...addForm.register('email')}
+              error={addForm.formState.errors.email?.message}
+            />
           </div>
-        </div>
+          <Input
+            label="Address"
+            placeholder="123 Service St, City, Province"
+            required
+            {...addForm.register('address')}
+            error={addForm.formState.errors.address?.message}
+          />
+          <Textarea
+            label="Notes"
+            placeholder="Additional notes about this vendor..."
+            rows={3}
+            {...addForm.register('notes')}
+          />
+        </form>
+      </Modal>
+
+      {/* Edit Vendor Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingVendor(null);
+        }}
+        title="Edit Vendor"
+        description="Update vendor information"
+        size="md"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => {
+              setShowEditModal(false);
+              setEditingVendor(null);
+            }}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleSaveEdit}>
+              Save Changes
+            </Button>
+          </>
+        }
+      >
+        <form className="space-y-4">
+          <Input
+            label="Vendor Name"
+            placeholder="ABC Services Inc"
+            required
+            {...editForm.register('name')}
+            error={editForm.formState.errors.name?.message}
+          />
+          <Select
+            label="Category"
+            options={categories
+              .filter((c) => c !== 'all')
+              .map((cat) => ({ value: cat, label: cat }))}
+            required
+            {...editForm.register('category')}
+            error={editForm.formState.errors.category?.message}
+          />
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Phone"
+              type="tel"
+              placeholder="+1 (555) 000-0000"
+              required
+              {...editForm.register('phone')}
+              error={editForm.formState.errors.phone?.message}
+            />
+            <Input
+              label="Email"
+              type="email"
+              placeholder="contact@vendor.com"
+              required
+              {...editForm.register('email')}
+              error={editForm.formState.errors.email?.message}
+            />
+          </div>
+          <Input
+            label="Address"
+            placeholder="123 Service St, City, Province"
+            required
+            {...editForm.register('address')}
+            error={editForm.formState.errors.address?.message}
+          />
+          <Textarea
+            label="Notes"
+            placeholder="Additional notes about this vendor..."
+            rows={3}
+            {...editForm.register('notes')}
+          />
+        </form>
       </Modal>
     </div>
   );
