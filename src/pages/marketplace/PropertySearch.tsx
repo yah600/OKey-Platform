@@ -1,98 +1,46 @@
 import { useState, useEffect } from 'react';
-import { Search, SlidersHorizontal, MapPin, Building2 } from 'lucide-react';
+import { Search, SlidersHorizontal, MapPin, Building2, ArrowUpDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Loading from '../../components/ui/Loading';
 import EmptyState from '../../components/ui/EmptyState';
+import { usePropertySearchStore } from '../../store/propertySearchStore';
+import { useDebounce } from '../../hooks/useDebounce';
 
 export default function PropertySearch() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [propertyType, setPropertyType] = useState('all');
-  const [priceRange, setPriceRange] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [localSearchQuery, setLocalSearchQuery] = useState('');
+
+  const {
+    filters,
+    setFilters,
+    resetFilters,
+    sortBy,
+    setSortBy,
+    currentPage,
+    setCurrentPage,
+    getPaginatedProperties,
+    getFilteredProperties,
+    getTotalPages,
+  } = usePropertySearchStore();
+
+  const debouncedSearchQuery = useDebounce(localSearchQuery, 300);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 600);
     return () => clearTimeout(timer);
   }, []);
 
-  const properties = [
-    {
-      id: 1,
-      name: 'Sunset Apartments',
-      address: '123 Main St, Montreal, QC',
-      image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop',
-      units: 3,
-      priceFrom: 1800,
-      type: 'Apartment',
-      beds: '1-2',
-      baths: '1',
-    },
-    {
-      id: 2,
-      name: 'Downtown Plaza',
-      address: '456 King St, Montreal, QC',
-      image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&h=600&fit=crop',
-      units: 5,
-      priceFrom: 2200,
-      type: 'Condo',
-      beds: '2-3',
-      baths: '2',
-    },
-    {
-      id: 3,
-      name: 'Riverside Complex',
-      address: '789 River Rd, Laval, QC',
-      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop',
-      units: 2,
-      priceFrom: 2500,
-      type: 'House',
-      beds: '3',
-      baths: '2.5',
-    },
-    {
-      id: 4,
-      name: 'Urban Lofts',
-      address: '321 Urban Ave, Montreal, QC',
-      image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&h=600&fit=crop',
-      units: 4,
-      priceFrom: 1950,
-      type: 'Loft',
-      beds: '1-2',
-      baths: '1',
-    },
-    {
-      id: 5,
-      name: 'Garden Residences',
-      address: '555 Park Blvd, Laval, QC',
-      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800&h=600&fit=crop',
-      units: 6,
-      priceFrom: 1750,
-      type: 'Apartment',
-      beds: '1-3',
-      baths: '1-2',
-    },
-    {
-      id: 6,
-      name: 'Executive Towers',
-      address: '888 Business St, Montreal, QC',
-      image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=600&fit=crop',
-      units: 8,
-      priceFrom: 2800,
-      type: 'Condo',
-      beds: '2-4',
-      baths: '2-3',
-    },
-  ];
+  // Update filters when debounced search query changes
+  useEffect(() => {
+    setFilters({ query: debouncedSearchQuery });
+  }, [debouncedSearchQuery, setFilters]);
 
-  const filteredProperties = properties.filter((property) => {
-    const matchesSearch = property.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         property.address.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = propertyType === 'all' || property.type.toLowerCase() === propertyType;
-    return matchesSearch && matchesType;
-  });
+  const paginatedProperties = getPaginatedProperties();
+  const filteredCount = getFilteredProperties().length;
+  const totalPages = getTotalPages();
 
   if (isLoading) {
     return (
@@ -129,8 +77,8 @@ export default function PropertySearch() {
               <input
                 type="text"
                 placeholder="Search by location, property name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={localSearchQuery}
+                onChange={(e) => setLocalSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
             </div>
@@ -147,12 +95,12 @@ export default function PropertySearch() {
           {/* Filters Panel */}
           {showFilters && (
             <Card padding="sm" className="mb-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                   <label className="block text-xs text-neutral-600 mb-1">Property Type</label>
                   <select
-                    value={propertyType}
-                    onChange={(e) => setPropertyType(e.target.value)}
+                    value={filters.propertyType}
+                    onChange={(e) => setFilters({ propertyType: e.target.value })}
                     className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
                     <option value="all">All Types</option>
@@ -160,29 +108,82 @@ export default function PropertySearch() {
                     <option value="condo">Condo</option>
                     <option value="house">House</option>
                     <option value="loft">Loft</option>
+                    <option value="townhouse">Townhouse</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-neutral-600 mb-1">Price Range</label>
+                  <label className="block text-xs text-neutral-600 mb-1">City</label>
                   <select
-                    value={priceRange}
-                    onChange={(e) => setPriceRange(e.target.value)}
+                    value={filters.city}
+                    onChange={(e) => setFilters({ city: e.target.value })}
                     className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   >
-                    <option value="all">All Prices</option>
-                    <option value="0-2000">$0 - $2,000</option>
-                    <option value="2000-2500">$2,000 - $2,500</option>
-                    <option value="2500+">$2,500+</option>
+                    <option value="all">All Cities</option>
+                    <option value="montreal">Montreal</option>
+                    <option value="laval">Laval</option>
                   </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Bedrooms</label>
+                  <select
+                    value={filters.beds}
+                    onChange={(e) => setFilters({ beds: e.target.value })}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="all">Any</option>
+                    <option value="1">1+</option>
+                    <option value="2">2+</option>
+                    <option value="3">3+</option>
+                    <option value="4">4+</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-neutral-600 mb-1">Bathrooms</label>
+                  <select
+                    value={filters.baths}
+                    onChange={(e) => setFilters({ baths: e.target.value })}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="all">Any</option>
+                    <option value="1">1+</option>
+                    <option value="2">2+</option>
+                    <option value="3">3+</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                <div className="md:col-span-2">
+                  <label className="block text-xs text-neutral-600 mb-1">
+                    Price Range: ${filters.priceMin} - ${filters.priceMax}
+                  </label>
+                  <div className="flex gap-3">
+                    <input
+                      type="range"
+                      min="0"
+                      max="10000"
+                      step="100"
+                      value={filters.priceMin}
+                      onChange={(e) => setFilters({ priceMin: Number(e.target.value) })}
+                      className="flex-1"
+                    />
+                    <input
+                      type="range"
+                      min="0"
+                      max="10000"
+                      step="100"
+                      value={filters.priceMax}
+                      onChange={(e) => setFilters({ priceMax: Number(e.target.value) })}
+                      className="flex-1"
+                    />
+                  </div>
                 </div>
                 <div className="flex items-end">
                   <Button
                     variant="secondary"
                     size="sm"
                     onClick={() => {
-                      setPropertyType('all');
-                      setPriceRange('all');
-                      setSearchQuery('');
+                      resetFilters();
+                      setLocalSearchQuery('');
                     }}
                     className="w-full"
                   >
@@ -193,13 +194,36 @@ export default function PropertySearch() {
             </Card>
           )}
 
-          <p className="text-sm text-neutral-600">{filteredProperties.length} properties found</p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-neutral-600">{filteredCount} properties found</p>
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="w-4 h-4 text-neutral-400" />
+              <select
+                value={`${sortBy.field}-${sortBy.direction}`}
+                onChange={(e) => {
+                  const [field, direction] = e.target.value.split('-') as [
+                    'priceFrom' | 'createdAt' | 'name',
+                    'asc' | 'desc'
+                  ];
+                  setSortBy({ field, direction });
+                }}
+                className="text-sm px-3 py-1.5 rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                <option value="createdAt-desc">Newest First</option>
+                <option value="createdAt-asc">Oldest First</option>
+                <option value="priceFrom-asc">Price: Low to High</option>
+                <option value="priceFrom-desc">Price: High to Low</option>
+                <option value="name-asc">Name: A to Z</option>
+                <option value="name-desc">Name: Z to A</option>
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* Property Grid */}
-        {filteredProperties.length > 0 ? (
+        {paginatedProperties.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredProperties.map((property) => (
+            {paginatedProperties.map((property) => (
             <Link key={property.id} to={`/marketplace/property/${property.id}`}>
               <Card padding="none" className="hover:border-neutral-300 transition-colors cursor-pointer overflow-hidden h-full">
                 <div className="aspect-video bg-neutral-200 overflow-hidden relative">
@@ -216,20 +240,20 @@ export default function PropertySearch() {
                   <h3 className="font-semibold text-neutral-900 mb-1">{property.name}</h3>
                   <div className="flex items-center gap-1 text-xs text-neutral-600 mb-3">
                     <MapPin className="w-3 h-3" />
-                    {property.address}
+                    {property.address}, {property.city}, {property.province}
                   </div>
                   <div className="flex items-center gap-3 text-xs text-neutral-600 mb-3 pb-3 border-b border-neutral-100">
                     <span>{property.beds} beds</span>
                     <span>•</span>
                     <span>{property.baths} baths</span>
                     <span>•</span>
-                    <span>{property.units} units</span>
+                    <span>{property.availableUnits} available</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-neutral-500">Starting from</p>
                       <p className="text-lg font-semibold text-neutral-900">
-                        ${property.priceFrom}
+                        ${property.priceFrom.toLocaleString()}
                         <span className="text-xs text-neutral-500 font-normal">/mo</span>
                       </p>
                     </div>
@@ -251,9 +275,8 @@ export default function PropertySearch() {
               action={{
                 label: 'Clear Filters',
                 onClick: () => {
-                  setSearchQuery('');
-                  setPropertyType('all');
-                  setPriceRange('all');
+                  resetFilters();
+                  setLocalSearchQuery('');
                 },
               }}
             />
@@ -261,21 +284,52 @@ export default function PropertySearch() {
         )}
 
         {/* Pagination */}
-        {filteredProperties.length > 0 && (
+        {totalPages > 1 && (
           <div className="mt-8 flex items-center justify-center gap-2">
-            <Button variant="secondary" size="sm" disabled>
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+            >
               Previous
             </Button>
-            <Button variant="primary" size="sm">
-              1
-            </Button>
-            <Button variant="secondary" size="sm">
-              2
-            </Button>
-            <Button variant="secondary" size="sm">
-              3
-            </Button>
-            <Button variant="secondary" size="sm">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+              // Show first page, last page, current page, and pages around current
+              const showPage =
+                page === 1 ||
+                page === totalPages ||
+                (page >= currentPage - 1 && page <= currentPage + 1);
+
+              if (!showPage) {
+                // Show ellipsis
+                if (page === currentPage - 2 || page === currentPage + 2) {
+                  return (
+                    <span key={page} className="px-2 text-neutral-400">
+                      ...
+                    </span>
+                  );
+                }
+                return null;
+              }
+
+              return (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? 'primary' : 'secondary'}
+                  size="sm"
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </Button>
+              );
+            })}
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+            >
               Next
             </Button>
           </div>
