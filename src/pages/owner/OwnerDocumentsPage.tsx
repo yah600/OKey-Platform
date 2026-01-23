@@ -1,9 +1,15 @@
 import { useState, useEffect } from 'react';
 import { FileText, Upload, Folder, Download, Eye } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Loading from '../../components/ui/Loading';
 import EmptyState from '../../components/ui/EmptyState';
+import Modal from '../../components/organisms/Modal';
+import Input from '../../components/atoms/Input';
+import Select from '../../components/molecules/Select';
 import { useAuthStore } from '../../store/authStore';
 import { useOwnerPropertiesStore } from '../../store/ownerPropertiesStore';
 import {
@@ -15,12 +21,33 @@ import {
 } from '../../store/documentsStore';
 import { toast } from 'sonner';
 
+const uploadSchema = z.object({
+  name: z.string().min(3, 'Document name is required'),
+  propertyId: z.string().min(1, 'Property is required'),
+  category: z.enum(['lease', 'inspection', 'insurance', 'other']),
+  type: z.string().min(1, 'Document type is required'),
+  size: z.coerce.number().min(1, 'File size required'),
+});
+
+type UploadFormData = z.infer<typeof uploadSchema>;
+
 export default function OwnerDocumentsPage() {
   const [isLoading, setIsLoading] = useState(true);
+  const [showUploadModal, setShowUploadModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | Document['category']>('all');
   const { user } = useAuthStore();
   const { getPropertiesByOwner } = useOwnerPropertiesStore();
-  const { getDocumentsByProperties, getDocumentsByPropertyAndCategory } = useDocumentsStore();
+  const { getDocumentsByProperties, getDocumentsByPropertyAndCategory, addDocument } = useDocumentsStore();
+
+  const form = useForm<UploadFormData>({
+    resolver: zodResolver(uploadSchema),
+    defaultValues: {
+      name: '',
+      category: 'other',
+      type: 'application/pdf',
+      size: 0,
+    },
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -47,10 +74,29 @@ export default function OwnerDocumentsPage() {
   const otherCount = getDocumentsByPropertyAndCategory(propertyIds, 'other').length;
 
   const handleUpload = () => {
-    toast.info('Upload Document', {
-      description: 'Document upload coming soon.',
-    });
+    setShowUploadModal(true);
   };
+
+  const handleUploadSubmit = form.handleSubmit((data) => {
+    if (!user) return;
+
+    addDocument({
+      name: data.name,
+      propertyId: data.propertyId,
+      userId: user.id,
+      category: data.category,
+      type: data.type,
+      size: data.size,
+      url: `https://example.com/documents/${data.name.replace(/\s+/g, '_')}`,
+    });
+
+    toast.success('Document Uploaded', {
+      description: `${data.name} has been uploaded successfully.`,
+    });
+
+    form.reset();
+    setShowUploadModal(false);
+  });
 
   const handleDownload = (doc: Document) => {
     toast.success('Download Started', {
@@ -219,6 +265,69 @@ export default function OwnerDocumentsPage() {
           />
         )}
       </Card>
+
+      {/* Upload Modal */}
+      <Modal
+        isOpen={showUploadModal}
+        onClose={() => {
+          setShowUploadModal(false);
+          form.reset();
+        }}
+        title="Upload Document"
+        description="Add a new document to your property files"
+        size="md"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => {
+              setShowUploadModal(false);
+              form.reset();
+            }}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleUploadSubmit}>
+              Upload
+            </Button>
+          </>
+        }
+      >
+        <form className="space-y-4">
+          <Input
+            label="Document Name"
+            placeholder="e.g., Lease Agreement - Unit 4B"
+            required
+            {...form.register('name')}
+            error={form.formState.errors.name?.message}
+          />
+          <Select
+            label="Property"
+            options={properties.map((p) => ({ value: p.id, label: p.name }))}
+            required
+            {...form.register('propertyId')}
+            error={form.formState.errors.propertyId?.message}
+          />
+          <Select
+            label="Category"
+            options={[
+              { value: 'lease', label: 'Lease' },
+              { value: 'inspection', label: 'Inspection' },
+              { value: 'insurance', label: 'Insurance' },
+              { value: 'other', label: 'Other' },
+            ]}
+            required
+            {...form.register('category')}
+            error={form.formState.errors.category?.message}
+          />
+          <Input
+            label="File Size (KB)"
+            type="number"
+            placeholder="e.g., 250"
+            required
+            {...form.register('size')}
+            error={form.formState.errors.size?.message}
+            helpText="Simulated upload - enter approximate file size"
+          />
+        </form>
+      </Modal>
     </div>
   );
 }
