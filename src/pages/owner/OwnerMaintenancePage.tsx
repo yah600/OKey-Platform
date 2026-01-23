@@ -1,25 +1,73 @@
 import { useState, useEffect } from 'react';
-import { Wrench, Filter, User } from 'lucide-react';
+import { Wrench, Filter, User, Clock, Building2, AlertCircle } from 'lucide-react';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Loading from '../../components/ui/Loading';
+import Modal from '../../components/organisms/Modal';
+import Select from '../../components/molecules/Select';
+import Textarea from '../../components/atoms/Textarea';
 import { useAuthStore } from '../../store/authStore';
 import { useOwnerPropertiesStore } from '../../store/ownerPropertiesStore';
-import { useMaintenanceStore } from '../../store/maintenanceStore';
+import { useMaintenanceStore, type MaintenanceRequest } from '../../store/maintenanceStore';
+import { toast } from 'sonner';
 
 type FilterStatus = 'all' | 'pending' | 'in_progress' | 'completed';
 
 export default function OwnerMaintenancePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<MaintenanceRequest | null>(null);
+  const [newStatus, setNewStatus] = useState('');
+  const [newAssignee, setNewAssignee] = useState('');
+  const [notes, setNotes] = useState('');
   const { user } = useAuthStore();
   const { getPropertiesByOwner } = useOwnerPropertiesStore();
-  const { requests: allMaintenanceRequests } = useMaintenanceStore();
+  const { requests: allMaintenanceRequests, updateRequest } = useMaintenanceStore();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleRequestClick = (request: MaintenanceRequest) => {
+    setSelectedRequest(request);
+    setNewStatus(request.status);
+    setNewAssignee(request.assignedTo || '');
+    setNotes('');
+    setShowRequestModal(true);
+  };
+
+  const handleUpdateRequest = () => {
+    if (!selectedRequest) return;
+
+    const updates: Partial<MaintenanceRequest> = {};
+
+    if (newStatus !== selectedRequest.status) {
+      updates.status = newStatus as 'pending' | 'in_progress' | 'completed';
+    }
+
+    if (newAssignee !== selectedRequest.assignedTo) {
+      updates.assignedTo = newAssignee;
+    }
+
+    if (Object.keys(updates).length > 0) {
+      updateRequest(selectedRequest.id, updates);
+
+      toast.success('Request Updated', {
+        description: `Maintenance request has been updated successfully.`,
+      });
+    }
+
+    if (notes.trim()) {
+      toast.info('Note Added', {
+        description: 'Note saved (in production, this would be stored with the request).',
+      });
+    }
+
+    setShowRequestModal(false);
+    setSelectedRequest(null);
+  };
 
   // Get owner's properties
   const properties = user ? getPropertiesByOwner(user.id) : [];
@@ -133,7 +181,11 @@ export default function OwnerMaintenancePage() {
             };
 
             return (
-              <Card key={request.id}>
+              <Card
+                key={request.id}
+                className="hover:border-neutral-300 transition-colors cursor-pointer"
+                onClick={() => handleRequestClick(request)}
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center">
@@ -168,6 +220,115 @@ export default function OwnerMaintenancePage() {
           })
         )}
       </div>
+
+      {/* Request Details Modal */}
+      {selectedRequest && (
+        <Modal
+          isOpen={showRequestModal}
+          onClose={() => {
+            setShowRequestModal(false);
+            setSelectedRequest(null);
+          }}
+          title="Maintenance Request Details"
+          description={`Request #${selectedRequest.id.slice(0, 8).toUpperCase()}`}
+          size="lg"
+          footer={
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowRequestModal(false);
+                  setSelectedRequest(null);
+                }}
+              >
+                Close
+              </Button>
+              <Button variant="primary" onClick={handleUpdateRequest}>
+                Update Request
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-6">
+            {/* Request Details */}
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900 mb-3 flex items-center gap-2">
+                <Building2 className="w-4 h-4" />
+                Request Information
+              </h3>
+              <div className="bg-neutral-50 rounded-lg p-4 space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-neutral-600">Property:</span>
+                  <span className="font-medium text-neutral-900">{selectedRequest.propertyName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-600">Unit:</span>
+                  <span className="font-medium text-neutral-900">{selectedRequest.unitNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-600">Title:</span>
+                  <span className="font-medium text-neutral-900">{selectedRequest.title}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-600">Description:</span>
+                  <span className="font-medium text-neutral-900">{selectedRequest.description}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-600">Priority:</span>
+                  <span className="font-medium text-neutral-900 capitalize">{selectedRequest.priority}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-600">Submitted:</span>
+                  <span className="font-medium text-neutral-900">
+                    {new Date(selectedRequest.submittedAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Update Status */}
+            <div>
+              <Select
+                label="Status"
+                options={[
+                  { value: 'pending', label: 'Pending' },
+                  { value: 'in_progress', label: 'In Progress' },
+                  { value: 'completed', label: 'Completed' },
+                ]}
+                value={newStatus}
+                onChange={(e) => setNewStatus(e.target.value)}
+              />
+            </div>
+
+            {/* Assign To */}
+            <div>
+              <Select
+                label="Assign To"
+                options={[
+                  { value: '', label: 'Unassigned' },
+                  { value: 'Internal Maintenance Team', label: 'Internal Maintenance Team' },
+                  { value: 'ABC Plumbing', label: 'ABC Plumbing' },
+                  { value: 'Elite HVAC Solutions', label: 'Elite HVAC Solutions' },
+                  { value: 'QuickFix Repairs', label: 'QuickFix Repairs' },
+                ]}
+                value={newAssignee}
+                onChange={(e) => setNewAssignee(e.target.value)}
+              />
+            </div>
+
+            {/* Add Notes */}
+            <div>
+              <Textarea
+                label="Add Notes"
+                placeholder="Add any notes or updates about this request..."
+                rows={3}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

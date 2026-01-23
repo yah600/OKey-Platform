@@ -6,18 +6,27 @@ import Loading from '../components/ui/Loading';
 import Badge from '../components/ui/Badge';
 import Tabs from '../components/ui/Tabs';
 import EmptyState from '../components/organisms/EmptyState';
+import Modal from '../components/organisms/Modal';
+import { toast } from 'sonner';
+
+interface Notification {
+  id: number;
+  type: string;
+  title: string;
+  message: string;
+  time: string;
+  read: boolean;
+  priority: string;
+}
 
 export default function AllNotifications() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filterPriority, setFilterPriority] = useState('all');
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 400);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Mock notifications data
-  const notifications = [
+  // Initial mock notifications data
+  const initialNotifications: Notification[] = [
     {
       id: 1,
       type: 'payment',
@@ -92,6 +101,14 @@ export default function AllNotifications() {
     },
   ];
 
+  // Convert to state for interactivity
+  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 400);
+    return () => clearTimeout(timer);
+  }, []);
+
   const tabs = [
     { id: 'all', label: 'All', count: notifications.length },
     { id: 'unread', label: 'Unread', count: notifications.filter(n => !n.read).length },
@@ -100,9 +117,16 @@ export default function AllNotifications() {
   ];
 
   const filteredNotifications = notifications.filter((notification) => {
-    if (activeTab === 'all') return true;
-    if (activeTab === 'unread') return !notification.read;
-    return notification.type === activeTab;
+    // Filter by tab
+    const matchesTab =
+      activeTab === 'all' ||
+      (activeTab === 'unread' && !notification.read) ||
+      notification.type === activeTab;
+
+    // Filter by priority
+    const matchesPriority = filterPriority === 'all' || notification.priority === filterPriority;
+
+    return matchesTab && matchesPriority;
   });
 
   const getNotificationIcon = (type: string) => {
@@ -145,13 +169,42 @@ export default function AllNotifications() {
   };
 
   const markAllAsRead = () => {
-    // In a real app, this would call an API
-    console.log('Marking all as read');
+    const updatedNotifications = notifications.map((n) => ({ ...n, read: true }));
+    setNotifications(updatedNotifications);
+
+    toast.success('All Marked as Read', {
+      description: 'All notifications have been marked as read.',
+    });
   };
 
-  const deleteAll = () => {
-    // In a real app, this would call an API
-    console.log('Deleting all notifications');
+  const markAsRead = (id: number) => {
+    const updatedNotifications = notifications.map((n) =>
+      n.id === id ? { ...n, read: true } : n
+    );
+    setNotifications(updatedNotifications);
+
+    toast.success('Marked as Read', {
+      description: 'Notification marked as read.',
+    });
+  };
+
+  const deleteNotification = (id: number) => {
+    const notification = notifications.find((n) => n.id === id);
+    setNotifications(notifications.filter((n) => n.id !== id));
+
+    toast.success('Notification Deleted', {
+      description: `"${notification?.title}" has been removed.`,
+    });
+  };
+
+  const handleApplyFilter = () => {
+    toast.success('Filter Applied', {
+      description:
+        filterPriority === 'all'
+          ? 'Showing all notifications'
+          : `Showing ${filterPriority} priority notifications`,
+    });
+    setShowFilterModal(false);
   };
 
   if (isLoading) {
@@ -180,7 +233,7 @@ export default function AllNotifications() {
               <CheckCheck className="w-4 h-4" />
               Mark All Read
             </Button>
-            <Button variant="secondary" size="sm">
+            <Button variant="secondary" size="sm" onClick={() => setShowFilterModal(true)}>
               <Filter className="w-4 h-4" />
               Filter
             </Button>
@@ -304,6 +357,10 @@ export default function AllNotifications() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {!notification.read && (
                       <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          markAsRead(notification.id);
+                        }}
                         className="p-2 text-neutral-600 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                         title="Mark as read"
                       >
@@ -311,6 +368,10 @@ export default function AllNotifications() {
                       </button>
                     )}
                     <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteNotification(notification.id);
+                      }}
                       className="p-2 text-neutral-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Delete"
                     >
@@ -323,6 +384,78 @@ export default function AllNotifications() {
           </div>
         )}
       </div>
+
+      {/* Filter Modal */}
+      <Modal
+        isOpen={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        title="Filter Notifications"
+        description="Filter notifications by priority level"
+        size="sm"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setFilterPriority('all');
+                setShowFilterModal(false);
+              }}
+            >
+              Clear Filter
+            </Button>
+            <Button variant="primary" onClick={handleApplyFilter}>
+              Apply Filter
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <label className="block">
+            <input
+              type="radio"
+              name="priority"
+              value="all"
+              checked={filterPriority === 'all'}
+              onChange={(e) => setFilterPriority(e.target.value)}
+              className="mr-2"
+            />
+            All Priorities
+          </label>
+          <label className="block">
+            <input
+              type="radio"
+              name="priority"
+              value="high"
+              checked={filterPriority === 'high'}
+              onChange={(e) => setFilterPriority(e.target.value)}
+              className="mr-2"
+            />
+            High Priority
+          </label>
+          <label className="block">
+            <input
+              type="radio"
+              name="priority"
+              value="normal"
+              checked={filterPriority === 'normal'}
+              onChange={(e) => setFilterPriority(e.target.value)}
+              className="mr-2"
+            />
+            Normal Priority
+          </label>
+          <label className="block">
+            <input
+              type="radio"
+              name="priority"
+              value="low"
+              checked={filterPriority === 'low'}
+              onChange={(e) => setFilterPriority(e.target.value)}
+              className="mr-2"
+            />
+            Low Priority
+          </label>
+        </div>
+      </Modal>
     </div>
   );
 }

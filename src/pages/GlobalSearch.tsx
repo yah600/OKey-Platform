@@ -7,16 +7,57 @@ import SearchBar from '../components/molecules/SearchBar';
 import Badge from '../components/ui/Badge';
 import Tabs from '../components/ui/Tabs';
 import EmptyState from '../components/organisms/EmptyState';
+import Modal from '../components/organisms/Modal';
+import Checkbox from '../components/atoms/Checkbox';
+import Input from '../components/atoms/Input';
+import { toast } from 'sonner';
 
 export default function GlobalSearch() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filterDateRange, setFilterDateRange] = useState(false);
+  const [filterStartDate, setFilterStartDate] = useState('');
+  const [filterEndDate, setFilterEndDate] = useState('');
+  const [filterTypes, setFilterTypes] = useState<string[]>([]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleApplyFilters = () => {
+    let description = 'Advanced filters applied';
+
+    if (filterTypes.length > 0) {
+      description += `: ${filterTypes.join(', ')}`;
+    }
+
+    if (filterDateRange && filterStartDate && filterEndDate) {
+      description += ` | Date range: ${filterStartDate} to ${filterEndDate}`;
+    }
+
+    toast.success('Filters Applied', { description });
+    setShowFilterModal(false);
+  };
+
+  const handleClearFilters = () => {
+    setFilterTypes([]);
+    setFilterDateRange(false);
+    setFilterStartDate('');
+    setFilterEndDate('');
+    toast.info('Filters Cleared', {
+      description: 'All search filters have been reset.',
+    });
+    setShowFilterModal(false);
+  };
+
+  const toggleFilterType = (type: string) => {
+    setFilterTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+    );
+  };
 
   // Mock search results
   const searchResults = [
@@ -156,9 +197,14 @@ export default function GlobalSearch() {
               Find properties, residents, documents, and more
             </p>
           </div>
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" onClick={() => setShowFilterModal(true)}>
             <Filter className="w-4 h-4" />
             Advanced Filters
+            {(filterTypes.length > 0 || filterDateRange) && (
+              <Badge variant="primary" className="ml-2">
+                {filterTypes.length + (filterDateRange ? 1 : 0)}
+              </Badge>
+            )}
           </Button>
         </div>
       </div>
@@ -255,6 +301,71 @@ export default function GlobalSearch() {
           </div>
         </Card>
       )}
+
+      {/* Advanced Filters Modal */}
+      <Modal
+        isOpen={showFilterModal}
+        onClose={() => setShowFilterModal(false)}
+        title="Advanced Filters"
+        description="Refine your search results with advanced filters"
+        size="md"
+        footer={
+          <>
+            <Button variant="secondary" onClick={handleClearFilters}>
+              Clear All
+            </Button>
+            <Button variant="primary" onClick={handleApplyFilters}>
+              Apply Filters
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-6">
+          {/* Content Type Filters */}
+          <div>
+            <h3 className="text-sm font-semibold text-neutral-900 mb-3">Content Types</h3>
+            <div className="space-y-2">
+              {['properties', 'residents', 'documents', 'maintenance', 'meetings', 'financials'].map((type) => (
+                <label key={type} className="flex items-center gap-2 cursor-pointer">
+                  <Checkbox
+                    checked={filterTypes.includes(type)}
+                    onChange={() => toggleFilterType(type)}
+                  />
+                  <span className="text-sm text-neutral-700 capitalize">{type}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Date Range Filter */}
+          <div>
+            <label className="flex items-center gap-2 cursor-pointer mb-3">
+              <Checkbox
+                checked={filterDateRange}
+                onChange={() => setFilterDateRange(!filterDateRange)}
+              />
+              <span className="text-sm font-semibold text-neutral-900">Filter by Date Range</span>
+            </label>
+
+            {filterDateRange && (
+              <div className="grid grid-cols-2 gap-3 ml-6">
+                <Input
+                  label="Start Date"
+                  type="date"
+                  value={filterStartDate}
+                  onChange={(e) => setFilterStartDate(e.target.value)}
+                />
+                <Input
+                  label="End Date"
+                  type="date"
+                  value={filterEndDate}
+                  onChange={(e) => setFilterEndDate(e.target.value)}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

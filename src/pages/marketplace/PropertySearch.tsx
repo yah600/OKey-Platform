@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, SlidersHorizontal, MapPin, Building2, ArrowUpDown } from 'lucide-react';
+import { Search, SlidersHorizontal, MapPin, Building2, ArrowUpDown, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
@@ -7,11 +7,13 @@ import Loading from '../../components/ui/Loading';
 import EmptyState from '../../components/ui/EmptyState';
 import { usePropertySearchStore } from '../../store/propertySearchStore';
 import { useDebounce } from '../../hooks/useDebounce';
+import { toast } from 'sonner';
 
 export default function PropertySearch() {
   const [showFilters, setShowFilters] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [localSearchQuery, setLocalSearchQuery] = useState('');
+  const [priceError, setPriceError] = useState('');
 
   const {
     filters,
@@ -37,6 +39,31 @@ export default function PropertySearch() {
   useEffect(() => {
     setFilters({ query: debouncedSearchQuery });
   }, [debouncedSearchQuery, setFilters]);
+
+  // Price validation handlers
+  const handleMinPriceChange = (value: number) => {
+    if (value > filters.priceMax) {
+      setPriceError('Minimum price cannot exceed maximum price');
+      toast.error('Invalid Price Range', {
+        description: 'Minimum price cannot be greater than maximum price.',
+      });
+      return;
+    }
+    setPriceError('');
+    setFilters({ priceMin: value });
+  };
+
+  const handleMaxPriceChange = (value: number) => {
+    if (value < filters.priceMin) {
+      setPriceError('Maximum price cannot be less than minimum price');
+      toast.error('Invalid Price Range', {
+        description: 'Maximum price cannot be less than minimum price.',
+      });
+      return;
+    }
+    setPriceError('');
+    setFilters({ priceMax: value });
+  };
 
   const paginatedProperties = getPaginatedProperties();
   const filteredCount = getFilteredProperties().length;
@@ -163,7 +190,7 @@ export default function PropertySearch() {
                       max="10000"
                       step="100"
                       value={filters.priceMin}
-                      onChange={(e) => setFilters({ priceMin: Number(e.target.value) })}
+                      onChange={(e) => handleMinPriceChange(Number(e.target.value))}
                       className="flex-1"
                     />
                     <input
@@ -172,10 +199,16 @@ export default function PropertySearch() {
                       max="10000"
                       step="100"
                       value={filters.priceMax}
-                      onChange={(e) => setFilters({ priceMax: Number(e.target.value) })}
+                      onChange={(e) => handleMaxPriceChange(Number(e.target.value))}
                       className="flex-1"
                     />
                   </div>
+                  {priceError && (
+                    <div className="flex items-center gap-2 text-xs text-red-600 mt-2">
+                      <AlertCircle className="w-3 h-3" />
+                      {priceError}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-end">
                   <Button
