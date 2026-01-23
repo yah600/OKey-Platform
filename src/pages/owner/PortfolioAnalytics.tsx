@@ -1,70 +1,67 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Building2, DollarSign, Users, Calendar } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Loading from '../../components/ui/Loading';
+import { useAuthStore } from '../../store/authStore';
+import { useOwnerPropertiesStore } from '../../store/ownerPropertiesStore';
+import { toast } from 'sonner';
 
 export default function PortfolioAnalytics() {
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuthStore();
+  const { getPropertiesByOwner, units: allUnits } = useOwnerPropertiesStore();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
   }, []);
-  const properties = [
-    {
-      id: 1,
-      name: 'Sunset Apartments',
-      units: 24,
-      occupied: 24,
-      revenue: 43200,
-      expenses: 18500,
-      profit: 24700,
-      occupancy: 100,
-      avgRent: 1800,
-      trend: 'up',
-    },
-    {
-      id: 2,
-      name: 'Downtown Plaza',
-      units: 18,
-      occupied: 16,
-      revenue: 35200,
-      expenses: 15200,
-      profit: 20000,
-      occupancy: 89,
-      avgRent: 2200,
-      trend: 'down',
-    },
-    {
-      id: 3,
-      name: 'Riverside Complex',
-      units: 8,
-      occupied: 8,
-      revenue: 20000,
-      expenses: 8500,
-      profit: 11500,
-      occupancy: 100,
-      avgRent: 2500,
-      trend: 'up',
-    },
-  ];
 
-  const totalUnits = properties.reduce((sum, p) => sum + p.units, 0);
-  const totalOccupied = properties.reduce((sum, p) => sum + p.occupied, 0);
-  const totalRevenue = properties.reduce((sum, p) => sum + p.revenue, 0);
+  // Get owner's properties
+  const properties = user ? getPropertiesByOwner(user.id) : [];
+
+  // Calculate portfolio metrics
+  const totalUnits = properties.reduce((sum, p) => sum + p.totalUnits, 0);
+  const totalOccupied = properties.reduce((sum, p) => sum + p.occupiedUnits, 0);
+  const totalRevenue = properties.reduce((sum, p) => sum + p.monthlyRevenue, 0);
   const totalExpenses = properties.reduce((sum, p) => sum + p.expenses, 0);
   const totalProfit = totalRevenue - totalExpenses;
-  const avgOccupancy = Math.round((totalOccupied / totalUnits) * 100);
+  const avgOccupancy = totalUnits > 0 ? Math.round((totalOccupied / totalUnits) * 100) : 0;
 
-  const monthlyData = [
-    { month: 'Jan', revenue: 98400, expenses: 42200, profit: 56200 },
-    { month: 'Feb', revenue: 98400, expenses: 43100, profit: 55300 },
-    { month: 'Mar', revenue: 95200, expenses: 41800, profit: 53400 },
-    { month: 'Apr', revenue: 98400, expenses: 42500, profit: 55900 },
-    { month: 'May', revenue: 98400, expenses: 43800, profit: 54600 },
-    { month: 'Jun', revenue: 98400, expenses: 42200, profit: 56200 },
-  ];
+  // Calculate average rent per unit
+  const avgRent = totalOccupied > 0 ? Math.round(totalRevenue / totalOccupied) : 0;
+
+  const handleExport = () => {
+    toast.info('Export Report', {
+      description: 'Analytics export coming soon.',
+    });
+  };
+
+  const handleCompare = () => {
+    toast.info('Compare Properties', {
+      description: 'Property comparison coming soon.',
+    });
+  };
+
+  // Generate monthly data (simulated for last 6 months with slight variations)
+  const monthlyData = Array.from({ length: 6 }, (_, i) => {
+    const monthNames = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    const currentMonth = new Date().getMonth();
+    const monthIndex = (currentMonth - 5 + i + 12) % 12;
+
+    // Add slight variation to simulate historical data
+    const variation = 1 + (Math.random() * 0.1 - 0.05); // +/- 5%
+    const revenue = Math.round(totalRevenue * variation);
+    const expenses = Math.round(totalExpenses * variation);
+
+    return {
+      month: monthNames[monthIndex],
+      revenue,
+      expenses,
+      profit: revenue - expenses,
+    };
+  });
 
   const maxValue = Math.max(...monthlyData.map((d) => Math.max(d.revenue, d.expenses, d.profit)));
 
@@ -80,10 +77,10 @@ export default function PortfolioAnalytics() {
           <p className="text-sm text-neutral-600">Comprehensive view of your property portfolio</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary" size="sm" onClick={handleExport}>
             Export Report
           </Button>
-          <Button variant="primary" size="sm">
+          <Button variant="primary" size="sm" onClick={handleCompare}>
             Compare Properties
           </Button>
         </div>
@@ -194,46 +191,64 @@ export default function PortfolioAnalytics() {
               </tr>
             </thead>
             <tbody>
-              {properties.map((property) => (
-                <tr key={property.id} className="border-b border-neutral-100">
-                  <td className="py-3">
-                    <p className="text-sm font-medium text-neutral-900">{property.name}</p>
-                  </td>
-                  <td className="text-right text-sm text-neutral-900">
-                    {property.occupied}/{property.units}
-                  </td>
-                  <td className="text-right">
-                    <span
-                      className={`text-xs px-2 py-1 rounded ${
-                        property.occupancy === 100
-                          ? 'bg-green-100 text-green-700'
-                          : property.occupancy >= 90
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-amber-100 text-amber-700'
-                      }`}
-                    >
-                      {property.occupancy}%
-                    </span>
-                  </td>
-                  <td className="text-right text-sm text-neutral-900">${property.avgRent}</td>
-                  <td className="text-right text-sm text-neutral-900">
-                    ${property.revenue.toLocaleString()}
-                  </td>
-                  <td className="text-right text-sm text-neutral-900">
-                    ${property.expenses.toLocaleString()}
-                  </td>
-                  <td className="text-right text-sm font-semibold text-green-700">
-                    ${property.profit.toLocaleString()}
-                  </td>
-                  <td className="text-right">
-                    {property.trend === 'up' ? (
-                      <TrendingUp className="w-4 h-4 text-green-600 inline" />
-                    ) : (
-                      <TrendingDown className="w-4 h-4 text-red-600 inline" />
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {properties.map((property) => {
+                const occupancy = Math.round((property.occupiedUnits / property.totalUnits) * 100);
+                const propertyUnits = allUnits.filter((u) => u.propertyId === property.id);
+                const occupiedUnits = propertyUnits.filter((u) => u.status === 'occupied');
+                const propertyAvgRent =
+                  occupiedUnits.length > 0
+                    ? Math.round(occupiedUnits.reduce((sum, u) => sum + u.rent, 0) / occupiedUnits.length)
+                    : 0;
+                const profit = property.netIncome;
+
+                return (
+                  <tr key={property.id} className="border-b border-neutral-100">
+                    <td className="py-3">
+                      <Link
+                        to={`/owner/properties/${property.id}`}
+                        className="text-sm font-medium text-neutral-900 hover:text-primary-600"
+                      >
+                        {property.name}
+                      </Link>
+                    </td>
+                    <td className="text-right text-sm text-neutral-900">
+                      {property.occupiedUnits}/{property.totalUnits}
+                    </td>
+                    <td className="text-right">
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          occupancy === 100
+                            ? 'bg-green-100 text-green-700'
+                            : occupancy >= 90
+                            ? 'bg-blue-100 text-blue-700'
+                            : 'bg-amber-100 text-amber-700'
+                        }`}
+                      >
+                        {occupancy}%
+                      </span>
+                    </td>
+                    <td className="text-right text-sm text-neutral-900">
+                      ${propertyAvgRent.toLocaleString()}
+                    </td>
+                    <td className="text-right text-sm text-neutral-900">
+                      ${property.monthlyRevenue.toLocaleString()}
+                    </td>
+                    <td className="text-right text-sm text-neutral-900">
+                      ${property.expenses.toLocaleString()}
+                    </td>
+                    <td className="text-right text-sm font-semibold text-green-700">
+                      ${profit.toLocaleString()}
+                    </td>
+                    <td className="text-right">
+                      {occupancy >= 95 ? (
+                        <TrendingUp className="w-4 h-4 text-green-600 inline" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4 text-neutral-400 inline" />
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
               <tr className="border-t-2 border-neutral-300 font-semibold">
                 <td className="py-3 text-sm text-neutral-900">Total</td>
                 <td className="text-right text-sm text-neutral-900">
@@ -244,7 +259,7 @@ export default function PortfolioAnalytics() {
                     {avgOccupancy}%
                   </span>
                 </td>
-                <td className="text-right text-sm text-neutral-900">-</td>
+                <td className="text-right text-sm text-neutral-900">${avgRent.toLocaleString()}</td>
                 <td className="text-right text-sm text-neutral-900">
                   ${totalRevenue.toLocaleString()}
                 </td>
