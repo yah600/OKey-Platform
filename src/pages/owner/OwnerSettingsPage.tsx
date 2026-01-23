@@ -1,19 +1,90 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { User, Bell, CreditCard, Shield, Settings } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { useOwnerSettingsStore } from '../../store/ownerSettingsStore';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Loading from '../../components/ui/Loading';
+import { toast } from 'sonner';
+
+const accountSchema = z.object({
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().min(10, 'Invalid phone number'),
+  companyName: z.string().optional(),
+});
+
+const preferencesSchema = z.object({
+  language: z.enum(['en', 'fr']),
+  timezone: z.string(),
+  dateFormat: z.enum(['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']),
+  currency: z.enum(['CAD', 'USD']),
+});
+
+type AccountFormData = z.infer<typeof accountSchema>;
+type PreferencesFormData = z.infer<typeof preferencesSchema>;
 
 export default function OwnerSettingsPage() {
   const { user } = useAuthStore();
+  const { getSettings, updateAccount, updatePreferences, toggleNotification } = useOwnerSettingsStore();
   const [activeTab, setActiveTab] = useState<'account' | 'preferences' | 'notifications' | 'billing' | 'security'>('account');
   const [isLoading, setIsLoading] = useState(true);
+
+  const settings = user ? getSettings(user.id) : undefined;
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
   }, []);
+
+  const accountForm = useForm<AccountFormData>({
+    resolver: zodResolver(accountSchema),
+    values: {
+      firstName: settings?.account.firstName || '',
+      lastName: settings?.account.lastName || '',
+      email: settings?.account.email || '',
+      phone: settings?.account.phone || '',
+      companyName: settings?.account.companyName || '',
+    },
+  });
+
+  const preferencesForm = useForm<PreferencesFormData>({
+    resolver: zodResolver(preferencesSchema),
+    values: {
+      language: settings?.preferences.language || 'en',
+      timezone: settings?.preferences.timezone || 'America/Toronto',
+      dateFormat: settings?.preferences.dateFormat || 'MM/DD/YYYY',
+      currency: settings?.preferences.currency || 'CAD',
+    },
+  });
+
+  const handleAccountSave = (data: AccountFormData) => {
+    if (!user) return;
+    updateAccount(user.id, data);
+    toast.success('Account Updated', {
+      description: 'Your account information has been saved.',
+    });
+  };
+
+  const handlePreferencesSave = (data: PreferencesFormData) => {
+    if (!user) return;
+    updatePreferences(user.id, data);
+    toast.success('Preferences Updated', {
+      description: 'Your preferences have been saved.',
+    });
+  };
+
+  const handleToggleNotification = (key: keyof typeof settings.notifications) => {
+    if (!user || !settings) return;
+    toggleNotification(user.id, key);
+    toast.success('Notification Setting Updated', {
+      description: 'Your notification preferences have been updated.',
+    });
+  };
 
   const tabs = [
     { id: 'account', label: 'Account', icon: User },
@@ -64,47 +135,77 @@ export default function OwnerSettingsPage() {
           {activeTab === 'account' && (
             <Card>
               <h2 className="text-lg font-semibold text-neutral-900 mb-4">Account Information</h2>
-              <div className="space-y-4">
+              <form onSubmit={accountForm.handleSubmit(handleAccountSave)} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs text-neutral-600 mb-1">First Name</label>
+                    <label className="block text-xs text-neutral-600 mb-1">
+                      First Name <span className="text-red-500">*</span>
+                    </label>
                     <input
+                      {...accountForm.register('firstName')}
                       type="text"
-                      defaultValue={user?.name.split(' ')[0]}
                       className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
+                    {accountForm.formState.errors.firstName && (
+                      <p className="text-xs text-red-600 mt-1">
+                        {accountForm.formState.errors.firstName.message}
+                      </p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-xs text-neutral-600 mb-1">Last Name</label>
+                    <label className="block text-xs text-neutral-600 mb-1">
+                      Last Name <span className="text-red-500">*</span>
+                    </label>
                     <input
+                      {...accountForm.register('lastName')}
                       type="text"
-                      defaultValue={user?.name.split(' ')[1]}
                       className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
+                    {accountForm.formState.errors.lastName && (
+                      <p className="text-xs text-red-600 mt-1">
+                        {accountForm.formState.errors.lastName.message}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs text-neutral-600 mb-1">Email Address</label>
+                  <label className="block text-xs text-neutral-600 mb-1">
+                    Email Address <span className="text-red-500">*</span>
+                  </label>
                   <input
+                    {...accountForm.register('email')}
                     type="email"
-                    defaultValue={user?.email}
                     className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
+                  {accountForm.formState.errors.email && (
+                    <p className="text-xs text-red-600 mt-1">
+                      {accountForm.formState.errors.email.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-xs text-neutral-600 mb-1">Phone Number</label>
+                  <label className="block text-xs text-neutral-600 mb-1">
+                    Phone Number <span className="text-red-500">*</span>
+                  </label>
                   <input
+                    {...accountForm.register('phone')}
                     type="tel"
                     placeholder="(514) 555-0123"
                     className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
+                  {accountForm.formState.errors.phone && (
+                    <p className="text-xs text-red-600 mt-1">
+                      {accountForm.formState.errors.phone.message}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-xs text-neutral-600 mb-1">Company Name</label>
                   <input
+                    {...accountForm.register('companyName')}
                     type="text"
                     placeholder="Optional"
                     className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -112,9 +213,11 @@ export default function OwnerSettingsPage() {
                 </div>
 
                 <div className="pt-4">
-                  <Button variant="primary">Save Changes</Button>
+                  <Button type="submit" variant="primary">
+                    Save Changes
+                  </Button>
                 </div>
-              </div>
+              </form>
             </Card>
           )}
 
@@ -122,51 +225,65 @@ export default function OwnerSettingsPage() {
           {activeTab === 'preferences' && (
             <Card>
               <h2 className="text-lg font-semibold text-neutral-900 mb-4">Preferences</h2>
-              <div className="space-y-6">
+              <form onSubmit={preferencesForm.handleSubmit(handlePreferencesSave)} className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-neutral-900 mb-2">Language</label>
-                  <select className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                    <option>English</option>
-                    <option>French</option>
+                  <select
+                    {...preferencesForm.register('language')}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="en">English</option>
+                    <option value="fr">French</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-neutral-900 mb-2">Time Zone</label>
-                  <select className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                    <option>Eastern Time (ET)</option>
-                    <option>Central Time (CT)</option>
-                    <option>Mountain Time (MT)</option>
-                    <option>Pacific Time (PT)</option>
+                  <select
+                    {...preferencesForm.register('timezone')}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="America/Toronto">Eastern Time (ET)</option>
+                    <option value="America/Chicago">Central Time (CT)</option>
+                    <option value="America/Denver">Mountain Time (MT)</option>
+                    <option value="America/Los_Angeles">Pacific Time (PT)</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-neutral-900 mb-2">Date Format</label>
-                  <select className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                    <option>MM/DD/YYYY</option>
-                    <option>DD/MM/YYYY</option>
-                    <option>YYYY-MM-DD</option>
+                  <select
+                    {...preferencesForm.register('dateFormat')}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                    <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-neutral-900 mb-2">Currency</label>
-                  <select className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                    <option>CAD ($)</option>
-                    <option>USD ($)</option>
+                  <select
+                    {...preferencesForm.register('currency')}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  >
+                    <option value="CAD">CAD ($)</option>
+                    <option value="USD">USD ($)</option>
                   </select>
                 </div>
 
                 <div className="pt-4">
-                  <Button variant="primary">Save Preferences</Button>
+                  <Button type="submit" variant="primary">
+                    Save Preferences
+                  </Button>
                 </div>
-              </div>
+              </form>
             </Card>
           )}
 
           {/* Notifications Tab */}
-          {activeTab === 'notifications' && (
+          {activeTab === 'notifications' && settings && (
             <Card>
               <h2 className="text-lg font-semibold text-neutral-900 mb-4">Notification Settings</h2>
               <div className="space-y-4">
@@ -175,7 +292,12 @@ export default function OwnerSettingsPage() {
                     <p className="text-sm font-medium text-neutral-900">Payment Notifications</p>
                     <p className="text-xs text-neutral-600">Get notified when payments are received</p>
                   </div>
-                  <input type="checkbox" defaultChecked className="mt-1" />
+                  <input
+                    type="checkbox"
+                    checked={settings.notifications.paymentNotifications}
+                    onChange={() => handleToggleNotification('paymentNotifications')}
+                    className="mt-1"
+                  />
                 </div>
 
                 <div className="flex items-start justify-between py-3 border-b border-neutral-100">
@@ -183,7 +305,12 @@ export default function OwnerSettingsPage() {
                     <p className="text-sm font-medium text-neutral-900">Maintenance Requests</p>
                     <p className="text-xs text-neutral-600">Alerts for new maintenance requests</p>
                   </div>
-                  <input type="checkbox" defaultChecked className="mt-1" />
+                  <input
+                    type="checkbox"
+                    checked={settings.notifications.maintenanceRequests}
+                    onChange={() => handleToggleNotification('maintenanceRequests')}
+                    className="mt-1"
+                  />
                 </div>
 
                 <div className="flex items-start justify-between py-3 border-b border-neutral-100">
@@ -191,7 +318,12 @@ export default function OwnerSettingsPage() {
                     <p className="text-sm font-medium text-neutral-900">Lease Renewals</p>
                     <p className="text-xs text-neutral-600">Reminders for upcoming lease renewals</p>
                   </div>
-                  <input type="checkbox" defaultChecked className="mt-1" />
+                  <input
+                    type="checkbox"
+                    checked={settings.notifications.leaseRenewals}
+                    onChange={() => handleToggleNotification('leaseRenewals')}
+                    className="mt-1"
+                  />
                 </div>
 
                 <div className="flex items-start justify-between py-3 border-b border-neutral-100">
@@ -199,15 +331,25 @@ export default function OwnerSettingsPage() {
                     <p className="text-sm font-medium text-neutral-900">New Applications</p>
                     <p className="text-xs text-neutral-600">Notifications for new rental applications</p>
                   </div>
-                  <input type="checkbox" defaultChecked className="mt-1" />
+                  <input
+                    type="checkbox"
+                    checked={settings.notifications.newApplications}
+                    onChange={() => handleToggleNotification('newApplications')}
+                    className="mt-1"
+                  />
                 </div>
 
                 <div className="flex items-start justify-between py-3 border-b border-neutral-100">
                   <div>
-                    <p className="text-sm font-medium text-neutral-900">Marketing Updates</p>
-                    <p className="text-xs text-neutral-600">News and updates about O'Key Platform</p>
+                    <p className="text-sm font-medium text-neutral-900">Emergency Alerts</p>
+                    <p className="text-xs text-neutral-600">Critical alerts for emergency situations</p>
                   </div>
-                  <input type="checkbox" className="mt-1" />
+                  <input
+                    type="checkbox"
+                    checked={settings.notifications.emergencyAlerts}
+                    onChange={() => handleToggleNotification('emergencyAlerts')}
+                    className="mt-1"
+                  />
                 </div>
 
                 <div className="pt-4">
