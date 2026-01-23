@@ -6,6 +6,7 @@ import { LoadingScreen } from './components/global/LoadingScreen';
 
 // Lazy load all page components for code splitting
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
+const SignupPage = lazy(() => import('./pages/auth/SignupPage'));
 const DashboardLayout = lazy(() => import('./layouts/DashboardLayout'));
 
 // Marketplace pages
@@ -124,6 +125,7 @@ function App() {
 
         {/* Auth Routes */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
         <Route path="/dashboard" element={<DashboardRedirect />} />
 
         {/* Shared Protected Routes */}

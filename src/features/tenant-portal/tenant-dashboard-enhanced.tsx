@@ -325,7 +325,6 @@ export function TenantDashboardEnhanced() {
   };
 
   const handleMaintenanceSubmit = (data: any) => {
-    console.log('Maintenance request submitted:', data);
     setShowMaintenanceModal(false);
     // In real app, would add to mockIssues and refresh
   };

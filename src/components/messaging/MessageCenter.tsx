@@ -138,7 +138,6 @@ export function MessageCenter({ currentUserId, currentUserRole }: MessageCenterP
     if (!messageInput.trim() || !selectedConversation) return;
 
     // In a real app, this would send to the backend
-    console.log('Sending message:', messageInput);
     setMessageInput('');
   };
 

@@ -2,8 +2,8 @@ import { ButtonHTMLAttributes, forwardRef } from 'react';
 import { Loader2 } from 'lucide-react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost';
-  size?: 'sm' | 'md';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'inverted';
+  size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
 }
 
@@ -26,11 +26,13 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       primary: 'bg-neutral-900 text-white hover:bg-neutral-800',
       secondary: 'bg-white text-neutral-900 border border-neutral-200 hover:bg-neutral-50',
       ghost: 'bg-transparent text-neutral-600 hover:bg-neutral-100',
+      inverted: 'bg-white text-neutral-900 hover:bg-neutral-100',
     };
 
     const sizes = {
       sm: 'px-3 py-1.5 text-sm rounded-md',
       md: 'px-4 py-2 text-sm rounded-lg',
+      lg: 'px-6 py-3 text-base rounded-lg',
     };
 
     return (

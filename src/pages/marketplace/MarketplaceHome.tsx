@@ -58,7 +58,7 @@ export default function MarketplaceHome() {
               Discover available properties, bid on units, and manage your rental—all in one place.
             </p>
             <Link to="/marketplace/search">
-              <Button variant="primary" className="bg-white text-neutral-900 hover:bg-neutral-100">
+              <Button variant="inverted" size="lg">
                 <Search className="w-4 h-4" />
                 Start Searching
               </Button>
@@ -147,7 +147,7 @@ export default function MarketplaceHome() {
             Browse hundreds of available units and start your application today.
           </p>
           <Link to="/marketplace/search">
-            <Button variant="primary" className="bg-white text-neutral-900 hover:bg-neutral-100">
+            <Button variant="inverted" size="lg">
               Browse All Properties
             </Button>
           </Link>

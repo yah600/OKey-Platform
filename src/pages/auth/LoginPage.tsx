@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../../components/ui/Button';
@@ -88,6 +88,12 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 pt-6 border-t border-neutral-200">
+            <p className="text-sm text-neutral-600 text-center mb-4">
+              Don't have an account?{' '}
+              <Link to="/signup" className="text-primary-600 hover:text-primary-700 font-medium">
+                Sign up
+              </Link>
+            </p>
             <p className="text-xs text-neutral-500 text-center mb-2">Demo accounts</p>
             <div className="space-y-1 text-xs text-neutral-600">
               <p>tenant@okey.com / tenant123</p>

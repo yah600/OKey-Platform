@@ -11,6 +11,7 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
+  signup: (email: string, password: string, name: string, role: 'tenant' | 'owner') => Promise<boolean>;
   logout: () => void;
 }
 
@@ -36,7 +37,20 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     return false;
   },
-  
+
+  signup: async (email: string, password: string, name: string, role: 'tenant' | 'owner') => {
+    // Mock signup - in production, this would call an API
+    // For now, just create a user and log them in
+    const userId = Math.random().toString(36).substring(7);
+
+    set({
+      user: { id: userId, email, name, role },
+      isAuthenticated: true,
+    });
+
+    return true;
+  },
+
   logout: () => {
     set({ user: null, isAuthenticated: false });
   },
