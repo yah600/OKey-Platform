@@ -1,57 +1,89 @@
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { User, Home, Bell, Shield, Phone, Mail, MapPin, Calendar, DollarSign } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { useProfileStore } from '../../store/profileStore';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Loading from '../../components/ui/Loading';
+import { toast } from 'sonner';
 
 type Tab = 'personal' | 'lease' | 'preferences' | 'security';
+
+const personalInfoSchema = z.object({
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().min(10, 'Invalid phone number'),
+});
+
+const emergencyContactSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  relationship: z.string().min(2, 'Relationship is required'),
+  phone: z.string().min(10, 'Invalid phone number'),
+});
 
 export default function TenantProfile() {
   const [activeTab, setActiveTab] = useState<Tab>('personal');
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuthStore();
+  const { getProfile, updatePersonalInfo, updateEmergencyContact, updatePreferences, toggleNotification } = useProfileStore();
+
+  const profile = user ? getProfile(user.id) : null;
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
 
-  // Mock tenant data
-  const tenant = {
-    firstName: 'Sarah',
-    lastName: 'Johnson',
-    email: 'tenant@okey.com',
-    phone: '+1 (514) 555-0123',
-    emergencyContact: {
-      name: 'John Johnson',
-      relationship: 'Father',
-      phone: '+1 (514) 555-0456',
+  // Personal Info Form
+  const personalInfoForm = useForm({
+    resolver: zodResolver(personalInfoSchema),
+    defaultValues: {
+      firstName: profile?.firstName || '',
+      lastName: profile?.lastName || '',
+      email: profile?.email || '',
+      phone: profile?.phone || '',
     },
-    address: {
-      unit: '4B',
-      property: 'Sunset Apartments',
-      street: '123 Main St',
-      city: 'Montreal',
-      province: 'QC',
-      postalCode: 'H3A 1B2',
+  });
+
+  // Emergency Contact Form
+  const emergencyForm = useForm({
+    resolver: zodResolver(emergencyContactSchema),
+    defaultValues: {
+      name: profile?.emergencyContact.name || '',
+      relationship: profile?.emergencyContact.relationship || '',
+      phone: profile?.emergencyContact.phone || '',
     },
-    lease: {
-      startDate: '2025-09-01',
-      endDate: '2026-08-31',
-      monthlyRent: 1800,
-      securityDeposit: 1800,
-      status: 'active',
-    },
-    preferences: {
-      notifications: {
-        email: true,
-        sms: false,
-        push: true,
-      },
-      language: 'en',
-      theme: 'light',
-    },
+  });
+
+  const handlePersonalInfoSave = (data: z.infer<typeof personalInfoSchema>) => {
+    if (!user) return;
+    updatePersonalInfo(user.id, data);
+    toast.success('Profile Updated', {
+      description: 'Your personal information has been saved.',
+    });
+  };
+
+  const handleEmergencyContactSave = (data: z.infer<typeof emergencyContactSchema>) => {
+    if (!user) return;
+    updateEmergencyContact(user.id, data);
+    toast.success('Emergency Contact Updated', {
+      description: 'Your emergency contact has been saved.',
+    });
+  };
+
+  const handlePreferencesSave = () => {
+    toast.success('Preferences Saved', {
+      description: 'Your preferences have been updated.',
+    });
+  };
+
+  const handleNotificationToggle = (type: 'email' | 'sms' | 'push') => {
+    if (!user) return;
+    toggleNotification(user.id, type);
   };
 
   const tabs = [
@@ -101,7 +133,7 @@ export default function TenantProfile() {
 
         {/* Personal Info Tab */}
         {activeTab === 'personal' && (
-          <div className="space-y-4">
+          <form onSubmit={personalInfoForm.handleSubmit(handlePersonalInfoSave)} className="space-y-4">
             <Card>
               <h3 className="text-sm font-semibold text-neutral-900 mb-4">Basic Information</h3>
               <div className="space-y-4">
@@ -109,18 +141,36 @@ export default function TenantProfile() {
                   <div>
                     <label className="block text-xs text-neutral-600 mb-1">First Name</label>
                     <input
+                      {...personalInfoForm.register('firstName')}
                       type="text"
-                      value={tenant.firstName}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className={`w-full px-3 py-2 text-sm rounded-lg border ${
+                        personalInfoForm.formState.errors.firstName
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                          : 'border-neutral-200 focus:border-primary-500 focus:ring-primary-500'
+                      } focus:outline-none focus:ring-2`}
                     />
+                    {personalInfoForm.formState.errors.firstName && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {personalInfoForm.formState.errors.firstName.message}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-xs text-neutral-600 mb-1">Last Name</label>
                     <input
+                      {...personalInfoForm.register('lastName')}
                       type="text"
-                      value={tenant.lastName}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className={`w-full px-3 py-2 text-sm rounded-lg border ${
+                        personalInfoForm.formState.errors.lastName
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                          : 'border-neutral-200 focus:border-primary-500 focus:ring-primary-500'
+                      } focus:outline-none focus:ring-2`}
                     />
+                    {personalInfoForm.formState.errors.lastName && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {personalInfoForm.formState.errors.lastName.message}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -128,22 +178,40 @@ export default function TenantProfile() {
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                     <input
+                      {...personalInfoForm.register('email')}
                       type="email"
-                      value={tenant.email}
-                      className="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className={`w-full pl-10 pr-3 py-2 text-sm rounded-lg border ${
+                        personalInfoForm.formState.errors.email
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                          : 'border-neutral-200 focus:border-primary-500 focus:ring-primary-500'
+                      } focus:outline-none focus:ring-2`}
                     />
                   </div>
+                  {personalInfoForm.formState.errors.email && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {personalInfoForm.formState.errors.email.message}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs text-neutral-600 mb-1">Phone Number</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                     <input
+                      {...personalInfoForm.register('phone')}
                       type="tel"
-                      value={tenant.phone}
-                      className="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className={`w-full pl-10 pr-3 py-2 text-sm rounded-lg border ${
+                        personalInfoForm.formState.errors.phone
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                          : 'border-neutral-200 focus:border-primary-500 focus:ring-primary-500'
+                      } focus:outline-none focus:ring-2`}
                     />
                   </div>
+                  {personalInfoForm.formState.errors.phone && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {personalInfoForm.formState.errors.phone.message}
+                    </p>
+                  )}
                 </div>
               </div>
             </Card>
@@ -155,18 +223,36 @@ export default function TenantProfile() {
                   <div>
                     <label className="block text-xs text-neutral-600 mb-1">Contact Name</label>
                     <input
+                      {...emergencyForm.register('name')}
                       type="text"
-                      value={tenant.emergencyContact.name}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className={`w-full px-3 py-2 text-sm rounded-lg border ${
+                        emergencyForm.formState.errors.name
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                          : 'border-neutral-200 focus:border-primary-500 focus:ring-primary-500'
+                      } focus:outline-none focus:ring-2`}
                     />
+                    {emergencyForm.formState.errors.name && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {emergencyForm.formState.errors.name.message}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-xs text-neutral-600 mb-1">Relationship</label>
                     <input
+                      {...emergencyForm.register('relationship')}
                       type="text"
-                      value={tenant.emergencyContact.relationship}
-                      className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className={`w-full px-3 py-2 text-sm rounded-lg border ${
+                        emergencyForm.formState.errors.relationship
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                          : 'border-neutral-200 focus:border-primary-500 focus:ring-primary-500'
+                      } focus:outline-none focus:ring-2`}
                     />
+                    {emergencyForm.formState.errors.relationship && (
+                      <p className="mt-1 text-xs text-red-600">
+                        {emergencyForm.formState.errors.relationship.message}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -174,24 +260,59 @@ export default function TenantProfile() {
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
                     <input
+                      {...emergencyForm.register('phone')}
                       type="tel"
-                      value={tenant.emergencyContact.phone}
-                      className="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      className={`w-full pl-10 pr-3 py-2 text-sm rounded-lg border ${
+                        emergencyForm.formState.errors.phone
+                          ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                          : 'border-neutral-200 focus:border-primary-500 focus:ring-primary-500'
+                      } focus:outline-none focus:ring-2`}
                     />
                   </div>
+                  {emergencyForm.formState.errors.phone && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {emergencyForm.formState.errors.phone.message}
+                    </p>
+                  )}
                 </div>
               </div>
             </Card>
 
             <div className="flex justify-end gap-2">
-              <Button variant="secondary">Cancel</Button>
-              <Button variant="primary">Save Changes</Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  personalInfoForm.reset();
+                  emergencyForm.reset();
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                onClick={async (e) => {
+                  e.preventDefault();
+                  const personalValid = await personalInfoForm.trigger();
+                  const emergencyValid = await emergencyForm.trigger();
+
+                  if (personalValid) {
+                    handlePersonalInfoSave(personalInfoForm.getValues());
+                  }
+                  if (emergencyValid) {
+                    handleEmergencyContactSave(emergencyForm.getValues());
+                  }
+                }}
+              >
+                Save Changes
+              </Button>
             </div>
-          </div>
+          </form>
         )}
 
         {/* Lease Info Tab */}
-        {activeTab === 'lease' && (
+        {activeTab === 'lease' && profile && (
           <div className="space-y-4">
             <Card>
               <h3 className="text-sm font-semibold text-neutral-900 mb-4">Current Lease</h3>
@@ -201,16 +322,16 @@ export default function TenantProfile() {
                     <MapPin className="w-5 h-5 text-neutral-500 mt-0.5" />
                     <div>
                       <p className="text-sm font-semibold text-neutral-900">
-                        {tenant.address.property} - Unit {tenant.address.unit}
+                        {profile.address.property} - Unit {profile.address.unit}
                       </p>
                       <p className="text-xs text-neutral-600">
-                        {tenant.address.street}, {tenant.address.city}, {tenant.address.province} {tenant.address.postalCode}
+                        {profile.address.street}, {profile.address.city}, {profile.address.province} {profile.address.postalCode}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between pt-3 border-t border-neutral-200">
                     <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded capitalize">
-                      {tenant.lease.status}
+                      {profile.lease.status}
                     </span>
                   </div>
                 </div>
@@ -222,7 +343,7 @@ export default function TenantProfile() {
                       <p className="text-xs text-neutral-600">Lease Start</p>
                     </div>
                     <p className="text-sm font-semibold text-neutral-900">
-                      {new Date(tenant.lease.startDate).toLocaleDateString('en-US', {
+                      {new Date(profile.lease.startDate).toLocaleDateString('en-US', {
                         month: 'long',
                         day: 'numeric',
                         year: 'numeric',
@@ -235,7 +356,7 @@ export default function TenantProfile() {
                       <p className="text-xs text-neutral-600">Lease End</p>
                     </div>
                     <p className="text-sm font-semibold text-neutral-900">
-                      {new Date(tenant.lease.endDate).toLocaleDateString('en-US', {
+                      {new Date(profile.lease.endDate).toLocaleDateString('en-US', {
                         month: 'long',
                         day: 'numeric',
                         year: 'numeric',
@@ -250,14 +371,14 @@ export default function TenantProfile() {
                       <DollarSign className="w-4 h-4 text-neutral-500" />
                       <p className="text-xs text-neutral-600">Monthly Rent</p>
                     </div>
-                    <p className="text-sm font-semibold text-neutral-900">${tenant.lease.monthlyRent}</p>
+                    <p className="text-sm font-semibold text-neutral-900">${profile.lease.monthlyRent.toLocaleString()}</p>
                   </div>
                   <div className="p-3 border border-neutral-200 rounded-lg">
                     <div className="flex items-center gap-2 mb-1">
                       <DollarSign className="w-4 h-4 text-neutral-500" />
                       <p className="text-xs text-neutral-600">Security Deposit</p>
                     </div>
-                    <p className="text-sm font-semibold text-neutral-900">${tenant.lease.securityDeposit}</p>
+                    <p className="text-sm font-semibold text-neutral-900">${profile.lease.securityDeposit.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
@@ -269,7 +390,7 @@ export default function TenantProfile() {
                 <div>
                   <h4 className="text-sm font-semibold text-amber-900 mb-1">Lease Renewal</h4>
                   <p className="text-xs text-amber-800">
-                    Your lease expires in {Math.ceil((new Date(tenant.lease.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days.
+                    Your lease expires in {Math.ceil((new Date(profile.lease.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days.
                     You'll be notified when renewal options are available.
                   </p>
                 </div>
@@ -279,7 +400,7 @@ export default function TenantProfile() {
         )}
 
         {/* Preferences Tab */}
-        {activeTab === 'preferences' && (
+        {activeTab === 'preferences' && profile && (
           <div className="space-y-4">
             <Card>
               <h3 className="text-sm font-semibold text-neutral-900 mb-4">Notification Preferences</h3>
@@ -290,7 +411,12 @@ export default function TenantProfile() {
                     <p className="text-xs text-neutral-600">Receive updates via email</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked={tenant.preferences.notifications.email} />
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={profile.preferences.notifications.email}
+                      onChange={() => handleNotificationToggle('email')}
+                    />
                     <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                   </label>
                 </div>
@@ -300,7 +426,12 @@ export default function TenantProfile() {
                     <p className="text-xs text-neutral-600">Receive updates via text message</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked={tenant.preferences.notifications.sms} />
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={profile.preferences.notifications.sms}
+                      onChange={() => handleNotificationToggle('sms')}
+                    />
                     <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                   </label>
                 </div>
@@ -310,7 +441,12 @@ export default function TenantProfile() {
                     <p className="text-xs text-neutral-600">Receive updates on your device</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" className="sr-only peer" defaultChecked={tenant.preferences.notifications.push} />
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={profile.preferences.notifications.push}
+                      onChange={() => handleNotificationToggle('push')}
+                    />
                     <div className="w-11 h-6 bg-neutral-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
                   </label>
                 </div>
@@ -324,7 +460,14 @@ export default function TenantProfile() {
                   <label className="block text-xs text-neutral-600 mb-1">Language</label>
                   <select
                     className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    defaultValue={tenant.preferences.language}
+                    value={profile.preferences.language}
+                    onChange={(e) => {
+                      if (user) {
+                        updatePreferences(user.id, {
+                          language: e.target.value as 'en' | 'fr',
+                        });
+                      }
+                    }}
                   >
                     <option value="en">English</option>
                     <option value="fr">Français</option>
@@ -332,11 +475,21 @@ export default function TenantProfile() {
                 </div>
                 <div>
                   <label className="block text-xs text-neutral-600 mb-1">Timezone</label>
-                  <select className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                    <option>Eastern Time (ET)</option>
-                    <option>Pacific Time (PT)</option>
-                    <option>Central Time (CT)</option>
-                    <option>Mountain Time (MT)</option>
+                  <select
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    value={profile.preferences.timezone}
+                    onChange={(e) => {
+                      if (user) {
+                        updatePreferences(user.id, {
+                          timezone: e.target.value,
+                        });
+                      }
+                    }}
+                  >
+                    <option value="America/Toronto">Eastern Time (ET)</option>
+                    <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                    <option value="America/Chicago">Central Time (CT)</option>
+                    <option value="America/Denver">Mountain Time (MT)</option>
                   </select>
                 </div>
               </div>
@@ -348,7 +501,14 @@ export default function TenantProfile() {
                 <label className="block text-xs text-neutral-600 mb-1">Theme</label>
                 <select
                   className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  defaultValue={tenant.preferences.theme}
+                  value={profile.preferences.theme}
+                  onChange={(e) => {
+                    if (user) {
+                      updatePreferences(user.id, {
+                        theme: e.target.value as 'light' | 'dark' | 'system',
+                      });
+                    }
+                  }}
                 >
                   <option value="light">Light</option>
                   <option value="dark">Dark</option>
@@ -358,8 +518,15 @@ export default function TenantProfile() {
             </Card>
 
             <div className="flex justify-end gap-2">
-              <Button variant="secondary">Cancel</Button>
-              <Button variant="primary">Save Preferences</Button>
+              <Button variant="secondary" onClick={() => {
+                // Reset would reload from store
+                window.location.reload();
+              }}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handlePreferencesSave}>
+                Save Preferences
+              </Button>
             </div>
           </div>
         )}
