@@ -10,78 +10,26 @@ import EmptyState from '../../components/organisms/EmptyState';
 import Modal from '../../components/organisms/Modal';
 import Input from '../../components/atoms/Input';
 import Select from '../../components/molecules/Select';
+import { useAuthStore } from '../../store/authStore';
+import { useVendorStore } from '../../store/vendorStore';
+import { toast } from 'sonner';
 
 export default function VendorManagement() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const { user } = useAuthStore();
+  const { getVendorsByOwner, deleteVendor } = useVendorStore();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
 
-  // Mock vendor data
-  const vendors = [
-    {
-      id: 1,
-      name: 'ABC Plumbing Services',
-      category: 'Plumbing',
-      phone: '+1 (514) 555-0101',
-      email: 'contact@abcplumbing.com',
-      address: '123 Service St, Montreal, QC',
-      rating: 4.8,
-      completedJobs: 24,
-      status: 'active',
-    },
-    {
-      id: 2,
-      name: 'Elite HVAC Solutions',
-      category: 'HVAC',
-      phone: '+1 (514) 555-0202',
-      email: 'info@elitehvac.com',
-      address: '456 Repair Ave, Montreal, QC',
-      rating: 4.9,
-      completedJobs: 18,
-      status: 'active',
-    },
-    {
-      id: 3,
-      name: 'Professional Electricians Inc',
-      category: 'Electrical',
-      phone: '+1 (514) 555-0303',
-      email: 'service@proelec.com',
-      address: '789 Power Rd, Montreal, QC',
-      rating: 4.7,
-      completedJobs: 31,
-      status: 'active',
-    },
-    {
-      id: 4,
-      name: 'Clean & Shine Maintenance',
-      category: 'Cleaning',
-      phone: '+1 (514) 555-0404',
-      email: 'hello@cleanshine.com',
-      address: '321 Sparkle Ln, Montreal, QC',
-      rating: 4.6,
-      completedJobs: 42,
-      status: 'active',
-    },
-    {
-      id: 5,
-      name: 'Garden Masters Landscaping',
-      category: 'Landscaping',
-      phone: '+1 (514) 555-0505',
-      email: 'info@gardenmasters.com',
-      address: '654 Green Way, Montreal, QC',
-      rating: 4.5,
-      completedJobs: 15,
-      status: 'inactive',
-    },
-  ];
+  const vendors = user ? getVendorsByOwner(user.id) : [];
 
-  const categories = ['all', 'Plumbing', 'HVAC', 'Electrical', 'Cleaning', 'Landscaping', 'Other'];
+  const categories = ['all', 'Plumbing', 'HVAC', 'Electrical', 'Cleaning', 'Landscaping', 'Roofing', 'Painting', 'Other'];
 
   const filteredVendors = vendors.filter((vendor) => {
     const matchesSearch =
@@ -90,6 +38,28 @@ export default function VendorManagement() {
     const matchesCategory = selectedCategory === 'all' || vendor.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
+
+  const handleDelete = (vendorId: string, vendorName: string) => {
+    if (window.confirm(`Are you sure you want to delete ${vendorName}?`)) {
+      deleteVendor(vendorId);
+      toast.success('Vendor Deleted', {
+        description: `${vendorName} has been removed from your vendors.`,
+      });
+    }
+  };
+
+  const handleEdit = (vendorId: string) => {
+    toast.info('Edit Vendor', {
+      description: 'Vendor editing coming soon.',
+    });
+  };
+
+  const handleAddVendor = () => {
+    toast.info('Add Vendor', {
+      description: 'Add vendor form coming soon.',
+    });
+    setShowAddModal(false);
+  };
 
   if (isLoading) {
     return (
@@ -189,10 +159,14 @@ export default function VendorManagement() {
                   <span className="text-neutral-600">{vendor.completedJobs} jobs</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" onClick={() => handleEdit(vendor.id)}>
                     <Edit className="w-4 h-4" />
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(vendor.id, vendor.name)}
+                  >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -214,7 +188,7 @@ export default function VendorManagement() {
             <Button variant="secondary" onClick={() => setShowAddModal(false)}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={() => setShowAddModal(false)}>
+            <Button variant="primary" onClick={handleAddVendor}>
               Add Vendor
             </Button>
           </>
