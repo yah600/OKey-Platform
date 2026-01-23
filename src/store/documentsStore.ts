@@ -26,6 +26,8 @@ interface DocumentsState {
   getDocumentsByUser: (userId: string) => Document[];
   getDocumentsByCategory: (userId: string, category: Document['category']) => Document[];
   getDocumentById: (documentId: string) => Document | undefined;
+  getDocumentsByProperties: (propertyIds: string[]) => Document[];
+  getDocumentsByPropertyAndCategory: (propertyIds: string[], category: Document['category']) => Document[];
 }
 
 export const useDocumentsStore = create<DocumentsState>()(
@@ -102,6 +104,91 @@ export const useDocumentsStore = create<DocumentsState>()(
           description: 'Proof of renters insurance coverage',
           isShared: true,
         },
+        // Owner property documents
+        {
+          id: 'doc-owner-1',
+          userId: 'owner-1',
+          propertyId: 'prop-owner-1',
+          unitId: '',
+          name: 'Property Insurance - Sunset Apartments 2026',
+          type: 'pdf',
+          category: 'insurance',
+          size: 3500000, // 3.5 MB
+          uploadedBy: 'owner',
+          uploadedAt: '2026-01-01T10:00:00Z',
+          description: 'Annual property insurance policy',
+          isShared: false,
+        },
+        {
+          id: 'doc-owner-2',
+          userId: 'owner-1',
+          propertyId: 'prop-owner-1',
+          unitId: '',
+          name: 'Annual Building Inspection Report',
+          type: 'pdf',
+          category: 'inspection',
+          size: 4200000, // 4.2 MB
+          uploadedBy: 'system',
+          uploadedAt: '2026-01-10T14:30:00Z',
+          description: 'Mandatory annual building inspection',
+          isShared: false,
+        },
+        {
+          id: 'doc-owner-3',
+          userId: 'owner-1',
+          propertyId: 'prop-owner-2',
+          unitId: '',
+          name: 'Mortgage Documents - Downtown Plaza',
+          type: 'pdf',
+          category: 'other',
+          size: 2800000, // 2.8 MB
+          uploadedBy: 'owner',
+          uploadedAt: '2024-03-15T09:00:00Z',
+          description: 'Property mortgage documentation',
+          isShared: false,
+        },
+        {
+          id: 'doc-owner-4',
+          userId: 'owner-1',
+          propertyId: 'prop-owner-3',
+          unitId: '',
+          name: 'Tax Assessment 2025 - Riverside Complex',
+          type: 'pdf',
+          category: 'other',
+          size: 1500000, // 1.5 MB
+          uploadedBy: 'system',
+          uploadedAt: '2025-12-01T10:00:00Z',
+          description: 'Annual property tax assessment',
+          isShared: false,
+        },
+        {
+          id: 'doc-owner-5',
+          userId: 'owner-1',
+          propertyId: 'prop-owner-1',
+          unitId: 'unit-sunset-1',
+          name: 'Lease Agreement - Unit 1A',
+          type: 'pdf',
+          category: 'lease',
+          size: 2100000, // 2.1 MB
+          uploadedBy: 'owner',
+          uploadedAt: '2025-09-01T10:00:00Z',
+          description: '12-month lease agreement',
+          isShared: true,
+        },
+        {
+          id: 'doc-owner-6',
+          userId: 'owner-1',
+          propertyId: 'prop-owner-2',
+          unitId: 'unit-downtown-1',
+          name: 'Move-in Inspection - Unit 1A',
+          type: 'pdf',
+          category: 'inspection',
+          size: 1900000, // 1.9 MB
+          uploadedBy: 'owner',
+          uploadedAt: '2025-10-01T12:00:00Z',
+          description: 'Unit condition at move-in',
+          isShared: true,
+        },
       ],
 
       addDocument: (document) => {
@@ -136,6 +223,18 @@ export const useDocumentsStore = create<DocumentsState>()(
 
       getDocumentById: (documentId) => {
         return get().documents.find((doc) => doc.id === documentId);
+      },
+
+      getDocumentsByProperties: (propertyIds) => {
+        return get()
+          .documents.filter((doc) => propertyIds.includes(doc.propertyId))
+          .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
+      },
+
+      getDocumentsByPropertyAndCategory: (propertyIds, category) => {
+        return get()
+          .documents.filter((doc) => propertyIds.includes(doc.propertyId) && doc.category === category)
+          .sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
       },
     }),
     {
