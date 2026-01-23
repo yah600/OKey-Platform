@@ -11,6 +11,8 @@ import EmptyState from '../../components/organisms/EmptyState';
 import Modal from '../../components/organisms/Modal';
 import Input from '../../components/atoms/Input';
 import Select from '../../components/molecules/Select';
+import { useOwnerPropertiesStore } from '../../store/ownerPropertiesStore';
+import { toast } from 'sonner';
 
 export default function UnitsManagement() {
   const { propertyId } = useParams();
@@ -19,97 +21,47 @@ export default function UnitsManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const { getPropertyById, getUnitsByProperty } = useOwnerPropertiesStore();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
 
-  // Mock data
-  const property = {
-    id: propertyId || '1',
-    name: 'Sunset Apartments',
+  const property = getPropertyById(propertyId || '');
+  const allUnits = getUnitsByProperty(propertyId || '');
+
+  // Redirect if property not found
+  if (!isLoading && !property) {
+    navigate('/owner/properties');
+    return null;
+  }
+
+  const handleAddUnit = () => {
+    toast.info('Add Unit', {
+      description: 'Unit creation form coming soon.',
+    });
+    setShowAddModal(false);
   };
 
-  const units = [
-    {
-      id: 1,
-      number: '101',
-      beds: 1,
-      baths: 1,
-      sqft: 650,
-      rent: 1800,
-      status: 'occupied',
-      tenant: 'Sarah Johnson',
-      leaseEnd: '2026-08-31',
-      floor: 1,
-    },
-    {
-      id: 2,
-      number: '102',
-      beds: 2,
-      baths: 1,
-      sqft: 850,
-      rent: 2200,
-      status: 'occupied',
-      tenant: 'Michael Chen',
-      leaseEnd: '2026-12-15',
-      floor: 1,
-    },
-    {
-      id: 3,
-      number: '103',
-      beds: 2,
-      baths: 2,
-      sqft: 950,
-      rent: 2500,
-      status: 'vacant',
-      tenant: null,
-      leaseEnd: null,
-      floor: 1,
-    },
-    {
-      id: 4,
-      number: '201',
-      beds: 1,
-      baths: 1,
-      sqft: 700,
-      rent: 1900,
-      status: 'occupied',
-      tenant: 'Emma Davis',
-      leaseEnd: '2026-09-30',
-      floor: 2,
-    },
-    {
-      id: 5,
-      number: '202',
-      beds: 2,
-      baths: 1,
-      sqft: 850,
-      rent: 2200,
-      status: 'maintenance',
-      tenant: null,
-      leaseEnd: null,
-      floor: 2,
-    },
-    {
-      id: 6,
-      number: '203',
-      beds: 2,
-      baths: 2,
-      sqft: 950,
-      rent: 2500,
-      status: 'vacant',
-      tenant: null,
-      leaseEnd: null,
-      floor: 2,
-    },
-  ];
+  const handleEditUnit = (unitId: string) => {
+    toast.info('Edit Unit', {
+      description: 'Unit editing coming soon.',
+    });
+  };
+
+  const handleDeleteUnit = (unitId: string, unitNumber: string) => {
+    toast.info('Delete Unit', {
+      description: `Deleting Unit ${unitNumber} coming soon.`,
+    });
+  };
+
+  const units = allUnits;
 
   const filteredUnits = units.filter((unit) => {
     const matchesSearch =
-      unit.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      unit.tenant?.toLowerCase().includes(searchQuery.toLowerCase());
+      unit.unitNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      unit.tenantName?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || unit.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -117,11 +69,11 @@ export default function UnitsManagement() {
   const stats = {
     total: units.length,
     occupied: units.filter((u) => u.status === 'occupied').length,
-    vacant: units.filter((u) => u.status === 'vacant').length,
+    vacant: units.filter((u) => u.status === 'available').length,
     maintenance: units.filter((u) => u.status === 'maintenance').length,
   };
 
-  if (isLoading) {
+  if (isLoading || !property) {
     return (
       <div className="p-6">
         <Loading />
@@ -232,20 +184,19 @@ export default function UnitsManagement() {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-semibold text-neutral-900 mb-1">
-                    Unit {unit.number}
+                    Unit {unit.unitNumber}
                   </h3>
-                  <p className="text-xs text-neutral-600">Floor {unit.floor}</p>
                 </div>
                 <Badge
                   variant={
                     unit.status === 'occupied'
                       ? 'success'
-                      : unit.status === 'vacant'
+                      : unit.status === 'available'
                       ? 'warning'
                       : 'error'
                   }
                 >
-                  {unit.status}
+                  {unit.status === 'available' ? 'vacant' : unit.status}
                 </Badge>
               </div>
 
@@ -253,20 +204,20 @@ export default function UnitsManagement() {
                 <div className="flex items-center gap-4 text-sm text-neutral-600">
                   <span className="flex items-center gap-1">
                     <Bed className="w-4 h-4" />
-                    {unit.beds} bed
+                    {unit.bedrooms} bed
                   </span>
                   <span className="flex items-center gap-1">
                     <Bath className="w-4 h-4" />
-                    {unit.baths} bath
+                    {unit.bathrooms} bath
                   </span>
                   <span className="flex items-center gap-1">
                     <Maximize className="w-4 h-4" />
                     {unit.sqft} sqft
                   </span>
                 </div>
-                {unit.tenant && (
+                {unit.tenantName && (
                   <p className="text-sm text-neutral-600">
-                    <span className="font-medium">Tenant:</span> {unit.tenant}
+                    <span className="font-medium">Tenant:</span> {unit.tenantName}
                   </p>
                 )}
                 {unit.leaseEnd && (
@@ -279,14 +230,18 @@ export default function UnitsManagement() {
               <div className="pt-4 border-t border-neutral-100 flex items-center justify-between">
                 <div className="flex items-center gap-1 text-neutral-900">
                   <DollarSign className="w-4 h-4" />
-                  <span className="text-lg font-semibold">{unit.rent}</span>
+                  <span className="text-lg font-semibold">{unit.rent.toLocaleString()}</span>
                   <span className="text-sm text-neutral-600">/mo</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" onClick={() => handleEditUnit(unit.id)}>
                     <Edit className="w-4 h-4" />
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteUnit(unit.id, unit.unitNumber)}
+                  >
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
@@ -308,7 +263,7 @@ export default function UnitsManagement() {
             <Button variant="secondary" onClick={() => setShowAddModal(false)}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={() => setShowAddModal(false)}>
+            <Button variant="primary" onClick={handleAddUnit}>
               Add Unit
             </Button>
           </>
