@@ -24,6 +24,9 @@ const MaintenancePage = lazy(() => import('./pages/tenant/MaintenancePage'));
 const DocumentsPage = lazy(() => import('./pages/tenant/DocumentsPage'));
 const MessagesPage = lazy(() => import('./pages/tenant/MessagesPage'));
 const TenantProfile = lazy(() => import('./pages/tenant/TenantProfile'));
+const AdminRequests = lazy(() => import('./pages/tenant/AdminRequests'));
+const BuildingAmenities = lazy(() => import('./pages/tenant/BuildingAmenities'));
+const PackageTracking = lazy(() => import('./pages/tenant/PackageTracking'));
 
 // Owner pages
 const OwnerDashboard = lazy(() => import('./pages/owner/OwnerDashboard'));
@@ -175,6 +178,9 @@ function App() {
                   <Route path="maintenance" element={<MaintenancePage />} />
                   <Route path="documents" element={<DocumentsPage />} />
                   <Route path="messages" element={<MessagesPage />} />
+                  <Route path="admin-requests" element={<AdminRequests />} />
+                  <Route path="amenities" element={<BuildingAmenities />} />
+                  <Route path="packages" element={<PackageTracking />} />
                   <Route path="bids" element={<MyBids />} />
                   <Route path="profile" element={<TenantProfile />} />
                 </Routes>
