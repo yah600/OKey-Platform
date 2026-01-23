@@ -22,6 +22,8 @@ import {
 import Button from '../components/ui/Button';
 import CommandPalette from '../components/organisms/CommandPalette';
 import NotificationsPanel from '../components/organisms/NotificationsPanel';
+import { SkipLink } from '../components/global/SkipLink';
+import { ThemeToggle } from '../components/global/ThemeToggle';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -74,6 +76,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-neutral-50">
+      <SkipLink />
       {/* Top Header */}
       <header className="bg-white border-b border-neutral-200">
         <div className="px-6 py-4 flex items-center justify-between">
@@ -95,6 +98,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               <Bell className="w-4 h-4" />
             </Button>
+            <ThemeToggle />
             <div className="h-6 w-px bg-neutral-200 mx-2"></div>
             <div className="text-right">
               <p className="text-sm font-medium text-neutral-900">{user?.name}</p>
@@ -132,7 +136,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1">
+        <main id="main-content" className="flex-1" role="main" aria-label="Main content">
           {children}
         </main>
       </div>
