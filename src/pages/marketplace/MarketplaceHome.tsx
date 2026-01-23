@@ -1,46 +1,25 @@
 import { useState, useEffect } from 'react';
-import { Search, Building2, FileText, Key, ArrowRight } from 'lucide-react';
+import { Search, Building2, FileText, Key, ArrowRight, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Loading from '../../components/ui/Loading';
+import { usePropertySearchStore } from '../../store/propertySearchStore';
 
 export default function MarketplaceHome() {
   const [isLoading, setIsLoading] = useState(true);
+  const { properties } = usePropertySearchStore();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
-  const featuredProperties = [
-    {
-      id: 1,
-      name: 'Sunset Apartments',
-      address: '123 Main St, Montreal, QC',
-      image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&h=600&fit=crop',
-      units: 3,
-      priceFrom: 1800,
-      type: 'Apartment',
-    },
-    {
-      id: 2,
-      name: 'Downtown Plaza',
-      address: '456 King St, Montreal, QC',
-      image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800&h=600&fit=crop',
-      units: 5,
-      priceFrom: 2200,
-      type: 'Condo',
-    },
-    {
-      id: 3,
-      name: 'Riverside Complex',
-      address: '789 River Rd, Laval, QC',
-      image: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop',
-      units: 2,
-      priceFrom: 2500,
-      type: 'House',
-    },
-  ];
+
+  // Get featured properties (newest 3 with available units)
+  const featuredProperties = properties
+    .filter((p) => p.availableUnits > 0)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 3);
 
   const howItWorks = [
     {
@@ -108,27 +87,28 @@ export default function MarketplaceHome() {
             {featuredProperties.map((property) => (
               <Link key={property.id} to={`/marketplace/property/${property.id}`}>
                 <Card padding="none" className="hover:border-neutral-300 transition-colors cursor-pointer overflow-hidden">
-                  <div className="aspect-video bg-neutral-200 overflow-hidden">
+                  <div className="aspect-video bg-neutral-200 overflow-hidden relative">
                     <img
                       src={property.image}
                       alt={property.name}
                       className="w-full h-full object-cover"
                     />
+                    <span className="absolute top-2 right-2 text-xs px-2 py-1 bg-white text-neutral-900 rounded shadow-sm font-medium">
+                      {property.type}
+                    </span>
                   </div>
                   <div className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="font-semibold text-neutral-900">{property.name}</h3>
-                        <p className="text-xs text-neutral-600">{property.address}</p>
+                    <div className="mb-2">
+                      <h3 className="font-semibold text-neutral-900 mb-1">{property.name}</h3>
+                      <div className="flex items-center gap-1 text-xs text-neutral-600">
+                        <MapPin className="w-3 h-3" />
+                        {property.address}, {property.city}, {property.province}
                       </div>
-                      <span className="text-xs px-2 py-1 bg-neutral-100 text-neutral-700 rounded">
-                        {property.type}
-                      </span>
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-neutral-100">
-                      <span className="text-sm text-neutral-600">{property.units} units available</span>
+                      <span className="text-sm text-neutral-600">{property.availableUnits} units available</span>
                       <span className="text-lg font-semibold text-neutral-900">
-                        ${property.priceFrom}
+                        ${property.priceFrom.toLocaleString()}
                         <span className="text-xs text-neutral-500 font-normal">/mo</span>
                       </span>
                     </div>
