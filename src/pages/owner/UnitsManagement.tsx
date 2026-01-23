@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Bed, Bath, Maximize, DollarSign, Edit, Trash2, Search } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Loading from '../../components/ui/Loading';
@@ -14,6 +17,20 @@ import Select from '../../components/molecules/Select';
 import { useOwnerPropertiesStore } from '../../store/ownerPropertiesStore';
 import { toast } from 'sonner';
 
+const unitSchema = z.object({
+  unitNumber: z.string().min(1, 'Unit number is required'),
+  bedrooms: z.coerce.number().min(0, 'Must be at least 0'),
+  bathrooms: z.coerce.number().min(0.5, 'Must be at least 0.5').step(0.5),
+  sqft: z.coerce.number().min(100, 'Must be at least 100 sqft'),
+  rent: z.coerce.number().min(0, 'Rent must be positive'),
+  status: z.enum(['occupied', 'available', 'maintenance']),
+  tenantName: z.string().optional(),
+  leaseStart: z.string().optional(),
+  leaseEnd: z.string().optional(),
+});
+
+type UnitFormData = z.infer<typeof unitSchema>;
+
 export default function UnitsManagement() {
   const { propertyId } = useParams();
   const navigate = useNavigate();
@@ -21,12 +38,53 @@ export default function UnitsManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
-  const { getPropertyById, getUnitsByProperty } = useOwnerPropertiesStore();
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingUnit, setEditingUnit] = useState<string | null>(null);
+  const { getPropertyById, getUnitsByProperty, getUnitById, addUnit, updateUnit, deleteUnit } = useOwnerPropertiesStore();
+
+  const addForm = useForm<UnitFormData>({
+    resolver: zodResolver(unitSchema),
+    defaultValues: {
+      unitNumber: '',
+      bedrooms: 1,
+      bathrooms: 1,
+      sqft: 800,
+      rent: 0,
+      status: 'available',
+      tenantName: '',
+      leaseStart: '',
+      leaseEnd: '',
+    },
+  });
+
+  const editForm = useForm<UnitFormData>({
+    resolver: zodResolver(unitSchema),
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
+
+  // Populate edit form when editing a unit
+  useEffect(() => {
+    if (editingUnit) {
+      const unit = getUnitById(editingUnit);
+      if (unit) {
+        editForm.reset({
+          unitNumber: unit.unitNumber,
+          bedrooms: unit.bedrooms,
+          bathrooms: unit.bathrooms,
+          sqft: unit.sqft,
+          rent: unit.rent,
+          status: unit.status,
+          tenantName: unit.tenantName || '',
+          leaseStart: unit.leaseStart || '',
+          leaseEnd: unit.leaseEnd || '',
+        });
+      }
+    }
+  }, [editingUnit, getUnitById, editForm]);
 
   const property = getPropertyById(propertyId || '');
   const allUnits = getUnitsByProperty(propertyId || '');
@@ -37,23 +95,65 @@ export default function UnitsManagement() {
     return null;
   }
 
-  const handleAddUnit = () => {
-    toast.info('Add Unit', {
-      description: 'Unit creation form coming soon.',
+  const handleAddUnit = addForm.handleSubmit((data) => {
+    if (!propertyId) return;
+
+    addUnit({
+      propertyId,
+      unitNumber: data.unitNumber,
+      bedrooms: data.bedrooms,
+      bathrooms: data.bathrooms,
+      sqft: data.sqft,
+      rent: data.rent,
+      status: data.status,
+      tenantName: data.tenantName || undefined,
+      leaseStart: data.leaseStart || undefined,
+      leaseEnd: data.leaseEnd || undefined,
     });
+
+    toast.success('Unit Created', {
+      description: `Unit ${data.unitNumber} has been added successfully.`,
+    });
+
+    addForm.reset();
     setShowAddModal(false);
-  };
+  });
 
   const handleEditUnit = (unitId: string) => {
-    toast.info('Edit Unit', {
-      description: 'Unit editing coming soon.',
-    });
+    setEditingUnit(unitId);
+    setShowEditModal(true);
   };
 
-  const handleDeleteUnit = (unitId: string, unitNumber: string) => {
-    toast.info('Delete Unit', {
-      description: `Deleting Unit ${unitNumber} coming soon.`,
+  const handleSaveEdit = editForm.handleSubmit((data) => {
+    if (!editingUnit) return;
+
+    updateUnit(editingUnit, {
+      unitNumber: data.unitNumber,
+      bedrooms: data.bedrooms,
+      bathrooms: data.bathrooms,
+      sqft: data.sqft,
+      rent: data.rent,
+      status: data.status,
+      tenantName: data.tenantName || undefined,
+      leaseStart: data.leaseStart || undefined,
+      leaseEnd: data.leaseEnd || undefined,
     });
+
+    toast.success('Unit Updated', {
+      description: `Unit ${data.unitNumber} has been updated successfully.`,
+    });
+
+    setEditingUnit(null);
+    setShowEditModal(false);
+  });
+
+  const handleDeleteUnit = (unitId: string, unitNumber: string) => {
+    if (window.confirm(`Are you sure you want to delete Unit ${unitNumber}?`)) {
+      deleteUnit(unitId);
+      toast.success('Unit Deleted', {
+        description: `Unit ${unitNumber} has been removed.`,
+      });
+    }
   };
 
   const units = allUnits;
@@ -254,13 +354,19 @@ export default function UnitsManagement() {
       {/* Add Unit Modal */}
       <Modal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
+        onClose={() => {
+          setShowAddModal(false);
+          addForm.reset();
+        }}
         title="Add New Unit"
         description="Create a new unit for this property"
         size="md"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setShowAddModal(false)}>
+            <Button variant="secondary" onClick={() => {
+              setShowAddModal(false);
+              addForm.reset();
+            }}>
               Cancel
             </Button>
             <Button variant="primary" onClick={handleAddUnit}>
@@ -269,27 +375,188 @@ export default function UnitsManagement() {
           </>
         }
       >
-        <div className="space-y-4">
+        <form className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Unit Number" placeholder="101" required />
-            <Input label="Floor" type="number" placeholder="1" required />
+            <Input
+              label="Unit Number"
+              placeholder="101"
+              required
+              {...addForm.register('unitNumber')}
+              error={addForm.formState.errors.unitNumber?.message}
+            />
+            <Input
+              label="Square Feet"
+              type="number"
+              placeholder="850"
+              required
+              {...addForm.register('sqft')}
+              error={addForm.formState.errors.sqft?.message}
+            />
           </div>
           <div className="grid grid-cols-3 gap-4">
-            <Input label="Bedrooms" type="number" placeholder="2" required />
-            <Input label="Bathrooms" type="number" step="0.5" placeholder="1.5" required />
-            <Input label="Square Feet" type="number" placeholder="850" required />
+            <Input
+              label="Bedrooms"
+              type="number"
+              placeholder="2"
+              required
+              {...addForm.register('bedrooms')}
+              error={addForm.formState.errors.bedrooms?.message}
+            />
+            <Input
+              label="Bathrooms"
+              type="number"
+              step="0.5"
+              placeholder="1.5"
+              required
+              {...addForm.register('bathrooms')}
+              error={addForm.formState.errors.bathrooms?.message}
+            />
+            <Input
+              label="Monthly Rent"
+              type="number"
+              placeholder="2200"
+              required
+              {...addForm.register('rent')}
+              error={addForm.formState.errors.rent?.message}
+            />
           </div>
-          <Input label="Monthly Rent" type="number" placeholder="2200" required />
           <Select
             label="Status"
             options={[
-              { value: 'vacant', label: 'Vacant' },
+              { value: 'available', label: 'Vacant' },
               { value: 'occupied', label: 'Occupied' },
               { value: 'maintenance', label: 'Maintenance' },
             ]}
             required
+            {...addForm.register('status')}
+            error={addForm.formState.errors.status?.message}
           />
-        </div>
+          {addForm.watch('status') === 'occupied' && (
+            <>
+              <Input
+                label="Tenant Name"
+                placeholder="John Doe"
+                {...addForm.register('tenantName')}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Lease Start"
+                  type="date"
+                  {...addForm.register('leaseStart')}
+                />
+                <Input
+                  label="Lease End"
+                  type="date"
+                  {...addForm.register('leaseEnd')}
+                />
+              </div>
+            </>
+          )}
+        </form>
+      </Modal>
+
+      {/* Edit Unit Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingUnit(null);
+        }}
+        title="Edit Unit"
+        description="Update unit information"
+        size="md"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => {
+              setShowEditModal(false);
+              setEditingUnit(null);
+            }}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleSaveEdit}>
+              Save Changes
+            </Button>
+          </>
+        }
+      >
+        <form className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Unit Number"
+              placeholder="101"
+              required
+              {...editForm.register('unitNumber')}
+              error={editForm.formState.errors.unitNumber?.message}
+            />
+            <Input
+              label="Square Feet"
+              type="number"
+              placeholder="850"
+              required
+              {...editForm.register('sqft')}
+              error={editForm.formState.errors.sqft?.message}
+            />
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <Input
+              label="Bedrooms"
+              type="number"
+              placeholder="2"
+              required
+              {...editForm.register('bedrooms')}
+              error={editForm.formState.errors.bedrooms?.message}
+            />
+            <Input
+              label="Bathrooms"
+              type="number"
+              step="0.5"
+              placeholder="1.5"
+              required
+              {...editForm.register('bathrooms')}
+              error={editForm.formState.errors.bathrooms?.message}
+            />
+            <Input
+              label="Monthly Rent"
+              type="number"
+              placeholder="2200"
+              required
+              {...editForm.register('rent')}
+              error={editForm.formState.errors.rent?.message}
+            />
+          </div>
+          <Select
+            label="Status"
+            options={[
+              { value: 'available', label: 'Vacant' },
+              { value: 'occupied', label: 'Occupied' },
+              { value: 'maintenance', label: 'Maintenance' },
+            ]}
+            required
+            {...editForm.register('status')}
+            error={editForm.formState.errors.status?.message}
+          />
+          {editForm.watch('status') === 'occupied' && (
+            <>
+              <Input
+                label="Tenant Name"
+                placeholder="John Doe"
+                {...editForm.register('tenantName')}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Lease Start"
+                  type="date"
+                  {...editForm.register('leaseStart')}
+                />
+                <Input
+                  label="Lease End"
+                  type="date"
+                  {...editForm.register('leaseEnd')}
+                />
+              </div>
+            </>
+          )}
+        </form>
       </Modal>
     </div>
   );

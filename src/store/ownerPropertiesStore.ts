@@ -52,6 +52,10 @@ interface OwnerPropertiesState {
 
   // Unit Actions
   getUnitsByProperty: (propertyId: string) => PropertyUnit[];
+  getUnitById: (unitId: string) => PropertyUnit | undefined;
+  addUnit: (unit: Omit<PropertyUnit, 'id'>) => void;
+  updateUnit: (unitId: string, updates: Partial<PropertyUnit>) => void;
+  deleteUnit: (unitId: string) => void;
   getOccupiedUnitsCount: (propertyId: string) => number;
   getTotalRevenue: (ownerId: string) => number;
 }
@@ -215,6 +219,83 @@ export const useOwnerPropertiesStore = create<OwnerPropertiesState>()(
 
       getUnitsByProperty: (propertyId) => {
         return get().units.filter((u) => u.propertyId === propertyId);
+      },
+
+      getUnitById: (unitId) => {
+        return get().units.find((u) => u.id === unitId);
+      },
+
+      addUnit: (unit) => {
+        const newUnit: PropertyUnit = {
+          ...unit,
+          id: `unit-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        };
+
+        set((state) => ({
+          units: [newUnit, ...state.units],
+        }));
+
+        // Update property stats
+        const property = get().properties.find((p) => p.id === unit.propertyId);
+        if (property) {
+          const updatedOccupiedCount = get().getOccupiedUnitsCount(unit.propertyId);
+          const updatedTotalUnits = property.totalUnits + 1;
+          const updatedAvailableUnits = updatedTotalUnits - updatedOccupiedCount;
+
+          get().updateProperty(unit.propertyId, {
+            totalUnits: updatedTotalUnits,
+            occupiedUnits: updatedOccupiedCount,
+            availableUnits: updatedAvailableUnits,
+          });
+        }
+      },
+
+      updateUnit: (unitId, updates) => {
+        const oldUnit = get().units.find((u) => u.id === unitId);
+
+        set((state) => ({
+          units: state.units.map((u) =>
+            u.id === unitId ? { ...u, ...updates } : u
+          ),
+        }));
+
+        // Update property stats if status changed
+        if (oldUnit && updates.status && updates.status !== oldUnit.status) {
+          const property = get().properties.find((p) => p.id === oldUnit.propertyId);
+          if (property) {
+            const updatedOccupiedCount = get().getOccupiedUnitsCount(oldUnit.propertyId);
+            const updatedAvailableUnits = property.totalUnits - updatedOccupiedCount;
+
+            get().updateProperty(oldUnit.propertyId, {
+              occupiedUnits: updatedOccupiedCount,
+              availableUnits: updatedAvailableUnits,
+            });
+          }
+        }
+      },
+
+      deleteUnit: (unitId) => {
+        const unit = get().units.find((u) => u.id === unitId);
+
+        set((state) => ({
+          units: state.units.filter((u) => u.id !== unitId),
+        }));
+
+        // Update property stats
+        if (unit) {
+          const property = get().properties.find((p) => p.id === unit.propertyId);
+          if (property) {
+            const updatedOccupiedCount = get().getOccupiedUnitsCount(unit.propertyId);
+            const updatedTotalUnits = property.totalUnits - 1;
+            const updatedAvailableUnits = updatedTotalUnits - updatedOccupiedCount;
+
+            get().updateProperty(unit.propertyId, {
+              totalUnits: updatedTotalUnits,
+              occupiedUnits: updatedOccupiedCount,
+              availableUnits: updatedAvailableUnits,
+            });
+          }
+        }
       },
 
       getOccupiedUnitsCount: (propertyId) => {
