@@ -55,6 +55,7 @@ const OwnerMeetingsPage = lazy(() => import('./pages/owner/OwnerMeetingsPage'));
 const OwnerSettingsPage = lazy(() => import('./pages/owner/OwnerSettingsPage'));
 const PortfolioAnalytics = lazy(() => import('./pages/owner/PortfolioAnalytics'));
 const VendorManagement = lazy(() => import('./pages/owner/VendorManagement'));
+const VacancyMarketing = lazy(() => import('./pages/owner/VacancyMarketing'));
 const CalendarPage = lazy(() => import('./pages/owner/CalendarPage'));
 const TaskManagement = lazy(() => import('./pages/owner/TaskManagement'));
 
@@ -212,6 +213,7 @@ function App() {
                   <Route path="financials/expenses" element={<ExpenseTracking />} />
                   <Route path="financials/tax-documents" element={<TaxDocuments />} />
                   <Route path="vendors" element={<VendorManagement />} />
+                  <Route path="vacancy-marketing" element={<VacancyMarketing />} />
                   <Route path="calendar" element={<CalendarPage />} />
                   <Route path="tasks" element={<TaskManagement />} />
                   <Route path="maintenance" element={<OwnerMaintenancePage />} />
