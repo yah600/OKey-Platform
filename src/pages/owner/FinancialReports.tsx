@@ -7,19 +7,62 @@ import Tabs from '../../components/ui/Tabs';
 import Select from '../../components/molecules/Select';
 import DatePicker from '../../components/molecules/DatePicker';
 import Table from '../../components/organisms/Table';
+import Modal from '../../components/organisms/Modal';
+import Input from '../../components/atoms/Input';
 import LineChart, { LineChartDataPoint } from '../../components/molecules/LineChart';
 import BarChart, { BarChartDataPoint } from '../../components/molecules/BarChart';
 import DonutChart, { DonutChartSegment } from '../../components/molecules/DonutChart';
+import { toast } from 'sonner';
 
 export default function FinancialReports() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('profit-loss');
   const [reportPeriod, setReportPeriod] = useState('monthly');
+  const [showDateRangeModal, setShowDateRangeModal] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleExportPDF = () => {
+    toast.success('Exporting Report', {
+      description: 'Your financial report is being generated as a PDF. This will download shortly.',
+      duration: 3000,
+    });
+
+    // In production, this would generate actual PDF
+    // For now, simulate download
+    setTimeout(() => {
+      toast.success('Download Complete', {
+        description: 'Financial_Report.pdf has been downloaded.',
+      });
+    }, 1500);
+  };
+
+  const handleApplyDateRange = () => {
+    if (!startDate || !endDate) {
+      toast.error('Invalid Date Range', {
+        description: 'Please select both start and end dates.',
+      });
+      return;
+    }
+
+    if (new Date(startDate) > new Date(endDate)) {
+      toast.error('Invalid Date Range', {
+        description: 'Start date must be before end date.',
+      });
+      return;
+    }
+
+    setReportPeriod('custom');
+    toast.success('Date Range Applied', {
+      description: `Report updated for ${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}`,
+    });
+    setShowDateRangeModal(false);
+  };
 
   // Mock data for P&L Statement
   const profitLossData = [
@@ -113,11 +156,11 @@ export default function FinancialReports() {
               value={reportPeriod}
               onChange={(e) => setReportPeriod(e.target.value)}
             />
-            <Button variant="secondary">
+            <Button variant="secondary" onClick={() => setShowDateRangeModal(true)}>
               <Calendar className="w-4 h-4" />
               Date Range
             </Button>
-            <Button variant="primary">
+            <Button variant="primary" onClick={handleExportPDF}>
               <Download className="w-4 h-4" />
               Export PDF
             </Button>
@@ -363,6 +406,47 @@ export default function FinancialReports() {
           </div>
         )}
       </div>
+
+      {/* Date Range Modal */}
+      <Modal
+        isOpen={showDateRangeModal}
+        onClose={() => setShowDateRangeModal(false)}
+        title="Custom Date Range"
+        description="Select a custom date range for the financial report"
+        size="md"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setShowDateRangeModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={handleApplyDateRange}>
+              Apply Range
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Start Date"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              required
+            />
+            <Input
+              label="End Date"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              required
+            />
+          </div>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-900">
+            <p>Select a date range to view financial data for a custom period.</p>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

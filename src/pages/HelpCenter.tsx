@@ -3,16 +3,59 @@ import { Search, BookOpen, Mail, MessageCircle, HelpCircle, FileText, DollarSign
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Loading from '../components/ui/Loading';
+import { toast } from 'sonner';
 
 export default function HelpCenter() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showContactModal, setShowContactModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [contactSubject, setContactSubject] = useState('');
+  const [contactCategory, setContactCategory] = useState('Property Management');
+  const [contactMessage, setContactMessage] = useState('');
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleCategoryClick = (categoryTitle: string) => {
+    toast.info(`Opening ${categoryTitle}`, {
+      description: `Viewing all articles in ${categoryTitle}. In production, this would show a list of related articles.`,
+    });
+  };
+
+  const handleArticleClick = (articleTitle: string) => {
+    toast.info('Opening Article', {
+      description: `Viewing: "${articleTitle}". In production, this would open the full article.`,
+    });
+  };
+
+  const handleLiveChat = () => {
+    toast.info('Live Chat', {
+      description: 'Connecting you to a support representative. In production, this would open a live chat widget.',
+      duration: 3000,
+    });
+  };
+
+  const handleSendMessage = () => {
+    if (!contactSubject.trim() || !contactMessage.trim()) {
+      toast.error('Missing Information', {
+        description: 'Please fill in all required fields.',
+      });
+      return;
+    }
+
+    toast.success('Message Sent', {
+      description: 'Your support request has been submitted. Our team will respond within 24 hours.',
+      duration: 4000,
+    });
+
+    // Reset form
+    setContactSubject('');
+    setContactCategory('Property Management');
+    setContactMessage('');
+    setShowContactModal(false);
+  };
 
   const categories = [
     {
@@ -79,7 +122,11 @@ export default function HelpCenter() {
           {categories.map((category, index) => {
             const Icon = category.icon;
             return (
-              <Card key={index} className="hover:border-neutral-300 transition-colors cursor-pointer">
+              <Card
+                key={index}
+                className="hover:border-neutral-300 transition-colors cursor-pointer"
+                onClick={() => handleCategoryClick(category.title)}
+              >
                 <div className="flex items-start gap-4">
                   <div className={"w-12 h-12 rounded-lg flex items-center justify-center " + category.color}>
                     <Icon className="w-6 h-6" />
@@ -101,6 +148,7 @@ export default function HelpCenter() {
               {popularArticles.map((article, index) => (
                 <button
                   key={index}
+                  onClick={() => handleArticleClick(article.title)}
                   className="w-full flex items-start justify-between py-4 first:pt-0 last:pb-0 hover:opacity-70 transition-opacity text-left"
                 >
                   <div className="flex items-start gap-3">
@@ -129,7 +177,7 @@ export default function HelpCenter() {
                 <Mail className="w-4 h-4" />
                 Contact Support
               </Button>
-              <Button variant="secondary">
+              <Button variant="secondary" onClick={handleLiveChat}>
                 <MessageCircle className="w-4 h-4" />
                 Live Chat
               </Button>
@@ -149,12 +197,18 @@ export default function HelpCenter() {
                 <input
                   type="text"
                   placeholder="Brief description of your issue"
+                  value={contactSubject}
+                  onChange={(e) => setContactSubject(e.target.value)}
                   className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 />
               </div>
               <div>
                 <label className="block text-xs text-neutral-600 mb-1">Category *</label>
-                <select className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500">
+                <select
+                  value={contactCategory}
+                  onChange={(e) => setContactCategory(e.target.value)}
+                  className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
                   <option>Property Management</option>
                   <option>Payments & Billing</option>
                   <option>Maintenance</option>
@@ -167,6 +221,8 @@ export default function HelpCenter() {
                 <textarea
                   rows={5}
                   placeholder="Please describe your issue in detail"
+                  value={contactMessage}
+                  onChange={(e) => setContactMessage(e.target.value)}
                   className="w-full px-3 py-2 text-sm rounded-lg border border-neutral-200 focus:outline-none focus:ring-2 focus:ring-primary-500"
                 ></textarea>
               </div>
@@ -176,7 +232,7 @@ export default function HelpCenter() {
               <Button variant="secondary" onClick={() => setShowContactModal(false)} className="flex-1">
                 Cancel
               </Button>
-              <Button variant="primary" className="flex-1">
+              <Button variant="primary" onClick={handleSendMessage} className="flex-1">
                 Send Message
               </Button>
             </div>
