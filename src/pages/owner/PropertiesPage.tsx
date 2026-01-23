@@ -6,11 +6,12 @@ import { useOwnerPropertiesStore } from '../../store/ownerPropertiesStore';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Loading from '../../components/ui/Loading';
-import { toast } from 'sonner';
+import AddPropertyModal from '../../components/modals/AddPropertyModal';
 
 export default function PropertiesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const { user } = useAuthStore();
   const { getPropertiesByOwner } = useOwnerPropertiesStore();
 
@@ -27,12 +28,6 @@ export default function PropertiesPage() {
     property.address.city.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAddProperty = () => {
-    toast.info('Add Property', {
-      description: 'Property creation form coming soon.',
-    });
-  };
-
   if (isLoading) {
     return <div className="p-6"><Loading /></div>;
   }
@@ -46,11 +41,20 @@ export default function PropertiesPage() {
             {allProperties.length} {allProperties.length === 1 ? 'property' : 'properties'} in your portfolio
           </p>
         </div>
-        <Button variant="primary" onClick={handleAddProperty}>
+        <Button variant="primary" onClick={() => setIsAddModalOpen(true)}>
           <Plus className="w-4 h-4" />
           Add Property
         </Button>
       </div>
+
+      {/* Add Property Modal */}
+      {user && (
+        <AddPropertyModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          ownerId={user.id}
+        />
+      )}
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
