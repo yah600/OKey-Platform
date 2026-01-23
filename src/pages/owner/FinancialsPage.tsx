@@ -6,6 +6,7 @@ import Card from '../../components/ui/Card';
 import Loading from '../../components/ui/Loading';
 import { useAuthStore } from '../../store/authStore';
 import { useOwnerPropertiesStore } from '../../store/ownerPropertiesStore';
+import { exportFinancialReport } from '../../utils/exportUtils';
 import { toast } from 'sonner';
 
 export default function FinancialsPage() {
@@ -26,9 +27,16 @@ export default function FinancialsPage() {
   const profitMargin = totalRevenue > 0 ? Math.round((netIncome / totalRevenue) * 100) : 0;
 
   const handleExportReport = () => {
-    toast.info('Export Report', {
-      description: 'Financial report export coming soon.',
-    });
+    try {
+      exportFinancialReport(properties, 'csv');
+      toast.success('Report Exported', {
+        description: 'Financial report downloaded successfully.',
+      });
+    } catch (error) {
+      toast.error('Export Failed', {
+        description: 'Unable to export report. Please try again.',
+      });
+    }
   };
 
   if (isLoading) {

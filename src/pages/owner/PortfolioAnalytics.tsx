@@ -6,6 +6,7 @@ import Button from '../../components/ui/Button';
 import Loading from '../../components/ui/Loading';
 import { useAuthStore } from '../../store/authStore';
 import { useOwnerPropertiesStore } from '../../store/ownerPropertiesStore';
+import { exportAnalyticsReport, exportPropertyComparison } from '../../utils/exportUtils';
 import { toast } from 'sonner';
 
 export default function PortfolioAnalytics() {
@@ -33,15 +34,35 @@ export default function PortfolioAnalytics() {
   const avgRent = totalOccupied > 0 ? Math.round(totalRevenue / totalOccupied) : 0;
 
   const handleExport = () => {
-    toast.info('Export Report', {
-      description: 'Analytics export coming soon.',
-    });
+    try {
+      exportAnalyticsReport(properties, 'csv');
+      toast.success('Analytics Exported', {
+        description: 'Analytics report downloaded successfully.',
+      });
+    } catch (error) {
+      toast.error('Export Failed', {
+        description: 'Unable to export analytics. Please try again.',
+      });
+    }
   };
 
   const handleCompare = () => {
-    toast.info('Compare Properties', {
-      description: 'Property comparison coming soon.',
-    });
+    try {
+      if (properties.length < 2) {
+        toast.warning('Insufficient Data', {
+          description: 'You need at least 2 properties to compare.',
+        });
+        return;
+      }
+      exportPropertyComparison(properties);
+      toast.success('Comparison Exported', {
+        description: 'Property comparison downloaded successfully.',
+      });
+    } catch (error) {
+      toast.error('Export Failed', {
+        description: 'Unable to export comparison. Please try again.',
+      });
+    }
   };
 
   // Generate monthly data (simulated for last 6 months with slight variations)

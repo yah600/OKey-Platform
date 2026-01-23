@@ -10,6 +10,7 @@ import EmptyState from '../../components/ui/EmptyState';
 import Modal from '../../components/organisms/Modal';
 import Input from '../../components/atoms/Input';
 import Select from '../../components/molecules/Select';
+import { DocumentPreviewModal } from '../../components/modals/DocumentPreviewModal';
 import { useAuthStore } from '../../store/authStore';
 import { useOwnerPropertiesStore } from '../../store/ownerPropertiesStore';
 import {
@@ -35,6 +36,7 @@ export default function OwnerDocumentsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | Document['category']>('all');
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
   const { user } = useAuthStore();
   const { getPropertiesByOwner } = useOwnerPropertiesStore();
   const { getDocumentsByProperties, getDocumentsByPropertyAndCategory, addDocument } = useDocumentsStore();
@@ -105,9 +107,7 @@ export default function OwnerDocumentsPage() {
   };
 
   const handleView = (doc: Document) => {
-    toast.info('View Document', {
-      description: 'Document viewer coming soon.',
-    });
+    setSelectedDocument(doc);
   };
 
   if (isLoading) {
@@ -328,6 +328,13 @@ export default function OwnerDocumentsPage() {
           />
         </form>
       </Modal>
+
+      {/* Document Preview Modal */}
+      <DocumentPreviewModal
+        isOpen={!!selectedDocument}
+        onClose={() => setSelectedDocument(null)}
+        document={selectedDocument}
+      />
     </div>
   );
 }
