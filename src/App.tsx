@@ -12,6 +12,7 @@ import OwnerDashboard from './pages/owner/OwnerDashboard';
 import PropertiesPage from './pages/owner/PropertiesPage';
 import ResidentsPage from './pages/owner/ResidentsPage';
 import FinancialsPage from './pages/owner/FinancialsPage';
+import FinancialReports from './pages/owner/FinancialReports';
 import OwnerMaintenancePage from './pages/owner/OwnerMaintenancePage';
 import OwnerDocumentsPage from './pages/owner/OwnerDocumentsPage';
 import OwnerMeetingsPage from './pages/owner/OwnerMeetingsPage';
@@ -35,6 +36,8 @@ import PropertyDetail from './pages/marketplace/PropertyDetail';
 import UnitDetail from './pages/marketplace/UnitDetail';
 import MyBids from './pages/marketplace/MyBids';
 import HelpCenter from './pages/HelpCenter';
+import AllNotifications from './pages/AllNotifications';
+import GlobalSearch from './pages/GlobalSearch';
 import NotFound from './pages/errors/NotFound';
 import AccessDenied from './pages/errors/AccessDenied';
 
@@ -92,13 +95,33 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<DashboardRedirect />} />
 
-        {/* Help Center */}
+        {/* Shared Protected Routes */}
         <Route
           path="/help"
           element={
             <PrivateRoute>
               <DashboardLayout>
                 <HelpCenter />
+              </DashboardLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <PrivateRoute>
+              <DashboardLayout>
+                <AllNotifications />
+              </DashboardLayout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/search"
+          element={
+            <PrivateRoute>
+              <DashboardLayout>
+                <GlobalSearch />
               </DashboardLayout>
             </PrivateRoute>
           }
@@ -116,6 +139,7 @@ function App() {
                   <Route path="maintenance" element={<MaintenancePage />} />
                   <Route path="documents" element={<DocumentsPage />} />
                   <Route path="messages" element={<MessagesPage />} />
+                  <Route path="bids" element={<MyBids />} />
                   <Route path="profile" element={<TenantProfile />} />
                 </Routes>
               </DashboardLayout>
@@ -137,6 +161,7 @@ function App() {
                   <Route path="residents" element={<ResidentsPage />} />
                   <Route path="residents/:id" element={<ResidentDetailPage />} />
                   <Route path="financials" element={<FinancialsPage />} />
+                  <Route path="financials/reports" element={<FinancialReports />} />
                   <Route path="vendors" element={<VendorManagement />} />
                   <Route path="calendar" element={<CalendarPage />} />
                   <Route path="tasks" element={<TaskManagement />} />
