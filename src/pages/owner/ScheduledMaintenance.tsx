@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Calendar, Clock, Wrench, Building2, AlertCircle } from 'lucide-react';
+import { Plus, Calendar, Clock, Wrench, Building2, AlertCircle, CheckCircle } from 'lucide-react';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Loading from '../../components/ui/Loading';
@@ -12,99 +12,24 @@ import Input from '../../components/atoms/Input';
 import Textarea from '../../components/atoms/Textarea';
 import Select from '../../components/molecules/Select';
 import DatePicker from '../../components/molecules/DatePicker';
+import { useAuthStore } from '../../store/authStore';
+import { useScheduledMaintenanceStore } from '../../store/scheduledMaintenanceStore';
+import { toast } from 'sonner';
 
 export default function ScheduledMaintenance() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('upcoming');
   const [showAddModal, setShowAddModal] = useState(false);
+  const { user } = useAuthStore();
+  const { getSchedulesByOwner, markAsCompleted, deleteSchedule } = useScheduledMaintenanceStore();
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 400);
     return () => clearTimeout(timer);
   }, []);
 
-  // Mock scheduled maintenance data
-  const schedules = [
-    {
-      id: 1,
-      title: 'HVAC System Inspection',
-      property: 'Sunset Apartments',
-      description: 'Annual HVAC system inspection and filter replacement',
-      frequency: 'Quarterly',
-      nextDue: '2026-02-15',
-      lastCompleted: '2025-11-15',
-      vendor: 'Elite HVAC Solutions',
-      cost: 350,
-      status: 'upcoming',
-      priority: 'high',
-    },
-    {
-      id: 2,
-      title: 'Fire Alarm Testing',
-      property: 'All Properties',
-      description: 'Test all fire alarms and replace batteries as needed',
-      frequency: 'Monthly',
-      nextDue: '2026-01-31',
-      lastCompleted: '2026-01-01',
-      vendor: 'SafeGuard Systems',
-      cost: 200,
-      status: 'upcoming',
-      priority: 'high',
-    },
-    {
-      id: 3,
-      title: 'Elevator Maintenance',
-      property: 'Downtown Plaza',
-      description: 'Regular elevator inspection and maintenance',
-      frequency: 'Monthly',
-      nextDue: '2026-01-28',
-      lastCompleted: '2025-12-28',
-      vendor: 'Vertical Transport Inc',
-      cost: 450,
-      status: 'upcoming',
-      priority: 'medium',
-    },
-    {
-      id: 4,
-      title: 'Landscaping Service',
-      property: 'Sunset Apartments',
-      description: 'Lawn mowing, trimming, and general landscaping',
-      frequency: 'Weekly',
-      nextDue: '2026-01-26',
-      lastCompleted: '2026-01-19',
-      vendor: 'Garden Masters',
-      cost: 150,
-      status: 'upcoming',
-      priority: 'low',
-    },
-    {
-      id: 5,
-      title: 'Common Area Cleaning',
-      property: 'All Properties',
-      description: 'Deep cleaning of common areas',
-      frequency: 'Weekly',
-      nextDue: '2026-01-25',
-      lastCompleted: '2026-01-18',
-      vendor: 'Clean & Shine',
-      cost: 300,
-      status: 'overdue',
-      priority: 'medium',
-    },
-    {
-      id: 6,
-      title: 'Pool Maintenance',
-      property: 'Urban Lofts',
-      description: 'Pool cleaning, chemical balancing, and equipment check',
-      frequency: 'Weekly',
-      nextDue: '2026-02-01',
-      lastCompleted: '2026-01-20',
-      vendor: 'Pool Pro Services',
-      cost: 200,
-      status: 'completed',
-      priority: 'medium',
-    },
-  ];
+  const schedules = user ? getSchedulesByOwner(user.id) : [];
 
   const tabs = [
     { id: 'upcoming', label: 'Upcoming', count: schedules.filter(s => s.status === 'upcoming').length },
@@ -115,11 +40,34 @@ export default function ScheduledMaintenance() {
   const filteredSchedules = schedules.filter((schedule) => {
     const matchesSearch =
       schedule.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      schedule.property.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      schedule.vendor.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTab = activeTab === 'all' || schedule.status === activeTab;
+      schedule.propertyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      schedule.vendorName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTab = schedule.status === activeTab;
     return matchesSearch && matchesTab;
   });
+
+  const handleMarkCompleted = (scheduleId: string) => {
+    markAsCompleted(scheduleId);
+    toast.success('Maintenance Completed', {
+      description: 'The maintenance has been marked as completed and rescheduled.',
+    });
+  };
+
+  const handleDelete = (scheduleId: string, title: string) => {
+    if (window.confirm(`Are you sure you want to delete "${title}"?`)) {
+      deleteSchedule(scheduleId);
+      toast.success('Schedule Deleted', {
+        description: 'The maintenance schedule has been removed.',
+      });
+    }
+  };
+
+  const handleAddSchedule = () => {
+    toast.info('Add Schedule', {
+      description: 'Schedule creation form coming soon.',
+    });
+    setShowAddModal(false);
+  };
 
   const isOverdue = (date: string) => {
     return new Date(date) < new Date();
@@ -212,11 +160,11 @@ export default function ScheduledMaintenance() {
                         <div className="flex items-center gap-4 text-xs text-neutral-500">
                           <span className="flex items-center gap-1">
                             <Building2 className="w-3 h-3" />
-                            {schedule.property}
+                            {schedule.propertyName}
                           </span>
                           <span className="flex items-center gap-1">
                             <Wrench className="w-3 h-3" />
-                            {schedule.vendor}
+                            {schedule.vendorName}
                           </span>
                         </div>
                       </div>
@@ -253,16 +201,25 @@ export default function ScheduledMaintenance() {
                           <Clock className="w-4 h-4" />
                           <span>{schedule.frequency}</span>
                         </div>
-                        <span className="text-neutral-600">${schedule.cost}</span>
+                        <span className="text-neutral-600">${schedule.estimatedCost.toLocaleString()}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         {schedule.status !== 'completed' && (
-                          <Button variant="secondary" size="sm">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleMarkCompleted(schedule.id)}
+                          >
+                            <CheckCircle className="w-4 h-4" />
                             Mark Complete
                           </Button>
                         )}
-                        <Button variant="ghost" size="sm">
-                          Edit
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(schedule.id, schedule.title)}
+                        >
+                          Delete
                         </Button>
                       </div>
                     </div>
@@ -286,7 +243,7 @@ export default function ScheduledMaintenance() {
             <Button variant="secondary" onClick={() => setShowAddModal(false)}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={() => setShowAddModal(false)}>
+            <Button variant="primary" onClick={handleAddSchedule}>
               Create Schedule
             </Button>
           </>
