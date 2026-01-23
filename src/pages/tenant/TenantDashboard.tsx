@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { DollarSign, Wrench, FileText, Mail, Calendar, Home } from 'lucide-react';
+import { DollarSign, Wrench, FileText, Mail, Calendar, Home, MapPin, Building2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { usePaymentsStore } from '../../store/paymentsStore';
@@ -9,10 +9,12 @@ import { useDocumentsStore } from '../../store/documentsStore';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Loading from '../../components/ui/Loading';
+import Modal from '../../components/organisms/Modal';
 
 export default function TenantDashboard() {
   const { user } = useAuthStore();
   const [isLoading, setIsLoading] = useState(true);
+  const [showPropertyModal, setShowPropertyModal] = useState(false);
 
   const { getUpcomingPayment, getPaymentHistory } = usePaymentsStore();
   const { getRequestsByUser, getActiveRequestsCount } = useMaintenanceStore();
@@ -57,7 +59,9 @@ export default function TenantDashboard() {
               <p className="text-xs text-neutral-500 mt-1">Lease expires: Dec 31, 2026</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm">View Details</Button>
+          <Button variant="ghost" size="sm" onClick={() => setShowPropertyModal(true)}>
+            View Details
+          </Button>
         </div>
       </Card>
 
@@ -245,6 +249,120 @@ export default function TenantDashboard() {
           })()}
         </div>
       </Card>
+
+      {/* Property Details Modal */}
+      <Modal
+        isOpen={showPropertyModal}
+        onClose={() => setShowPropertyModal(false)}
+        title="Your Rental Property"
+        description="Property and lease information"
+        size="lg"
+      >
+        <div className="space-y-6">
+          {/* Property Information */}
+          <div>
+            <h3 className="font-semibold text-neutral-900 mb-3 flex items-center gap-2">
+              <Building2 className="w-5 h-5" />
+              Property Details
+            </h3>
+            <div className="bg-neutral-50 rounded-lg p-4 space-y-3">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-neutral-600">Property Name</p>
+                  <p className="font-medium text-neutral-900">Sunset Apartments</p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">Unit Number</p>
+                  <p className="font-medium text-neutral-900">4B</p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">Address</p>
+                  <p className="font-medium text-neutral-900">123 Main St</p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">City</p>
+                  <p className="font-medium text-neutral-900">Montreal, QC</p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">Unit Size</p>
+                  <p className="font-medium text-neutral-900">850 sqft</p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">Bedrooms/Bathrooms</p>
+                  <p className="font-medium text-neutral-900">2 bed • 1 bath</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Lease Information */}
+          <div>
+            <h3 className="font-semibold text-neutral-900 mb-3 flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Lease Information
+            </h3>
+            <div className="bg-neutral-50 rounded-lg p-4 space-y-3">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-neutral-600">Monthly Rent</p>
+                  <p className="font-medium text-neutral-900">${upcomingPayment?.amount.toLocaleString() || '2,500'}/month</p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">Lease Term</p>
+                  <p className="font-medium text-neutral-900">12 months</p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">Lease Start</p>
+                  <p className="font-medium text-neutral-900">Jan 1, 2026</p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">Lease End</p>
+                  <p className="font-medium text-neutral-900">Dec 31, 2026</p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">Security Deposit</p>
+                  <p className="font-medium text-neutral-900">${upcomingPayment?.amount.toLocaleString() || '2,500'}</p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">Payment Due Date</p>
+                  <p className="font-medium text-neutral-900">1st of each month</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div>
+            <h3 className="font-semibold text-neutral-900 mb-3">Quick Actions</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <Link to="/tenant/payments">
+                <Button variant="secondary" className="w-full">
+                  <DollarSign className="w-4 h-4" />
+                  View Payments
+                </Button>
+              </Link>
+              <Link to="/tenant/documents">
+                <Button variant="secondary" className="w-full">
+                  <FileText className="w-4 h-4" />
+                  View Lease
+                </Button>
+              </Link>
+              <Link to="/tenant/maintenance">
+                <Button variant="secondary" className="w-full">
+                  <Wrench className="w-4 h-4" />
+                  Request Repair
+                </Button>
+              </Link>
+              <Link to="/tenant/profile">
+                <Button variant="secondary" className="w-full">
+                  <Home className="w-4 h-4" />
+                  Edit Profile
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

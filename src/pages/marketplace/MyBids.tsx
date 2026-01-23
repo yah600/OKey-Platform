@@ -1,18 +1,21 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { TrendingUp, Clock, CheckCircle, XCircle, Calendar, Trash2 } from 'lucide-react';
+import { TrendingUp, Clock, CheckCircle, XCircle, Calendar, Trash2, FileText } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
-import { useBidsStore } from '../../store/bidsStore';
+import { useBidsStore, type Bid } from '../../store/bidsStore';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Loading from '../../components/ui/Loading';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/organisms/EmptyState';
+import Modal from '../../components/organisms/Modal';
 import { toast } from 'sonner';
 
 export default function MyBids() {
   const [activeTab, setActiveTab] = useState<'pending' | 'accepted' | 'rejected' | 'withdrawn'>('pending');
   const [isLoading, setIsLoading] = useState(true);
+  const [showLeaseModal, setShowLeaseModal] = useState(false);
+  const [selectedBid, setSelectedBid] = useState<Bid | null>(null);
   const { user } = useAuthStore();
   const { bids: allBids, withdrawBid } = useBidsStore();
 
@@ -38,6 +41,29 @@ export default function MyBids() {
     toast.success('Bid Withdrawn', {
       description: 'Your bid has been withdrawn successfully.',
     });
+  };
+
+  const handleSignLease = (bid: Bid) => {
+    setSelectedBid(bid);
+    setShowLeaseModal(true);
+  };
+
+  const handleConfirmLeaseSigning = () => {
+    if (!selectedBid) return;
+
+    // In a real app, this would integrate with DocuSign
+    toast.success('Lease Signed Successfully!', {
+      description: `Your lease for ${selectedBid.unitDetails.propertyName} - Unit ${selectedBid.unitDetails.number} has been signed. Welcome home!`,
+      duration: 5000,
+    });
+
+    setShowLeaseModal(false);
+    setSelectedBid(null);
+
+    // Navigate to tenant dashboard after a delay
+    setTimeout(() => {
+      window.location.href = '/tenant';
+    }, 2000);
   };
 
   const getStatusConfig = (status: string) => {
@@ -190,7 +216,8 @@ export default function MyBids() {
                         </Link>
                         <div className="flex items-center gap-2">
                           {bid.status === 'accepted' && (
-                            <Button variant="primary" size="sm">
+                            <Button variant="primary" size="sm" onClick={() => handleSignLease(bid)}>
+                              <FileText className="w-3 h-3" />
                               Sign Lease
                             </Button>
                           )}
@@ -234,6 +261,95 @@ export default function MyBids() {
           </Card>
         )}
       </div>
+
+      {/* Lease Signing Modal */}
+      {selectedBid && (
+        <Modal
+          isOpen={showLeaseModal}
+          onClose={() => {
+            setShowLeaseModal(false);
+            setSelectedBid(null);
+          }}
+          title="Sign Lease Agreement"
+          description="Review and sign your lease electronically"
+          size="lg"
+          footer={
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setShowLeaseModal(false);
+                  setSelectedBid(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handleConfirmLeaseSigning}>
+                <FileText className="w-4 h-4" />
+                Sign Lease
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            {/* Lease Summary */}
+            <div className="bg-neutral-50 rounded-lg p-4">
+              <h3 className="font-semibold text-neutral-900 mb-3">Lease Summary</h3>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-neutral-600">Property</p>
+                  <p className="font-medium text-neutral-900">{selectedBid.unitDetails.propertyName}</p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">Unit</p>
+                  <p className="font-medium text-neutral-900">Unit {selectedBid.unitDetails.number}</p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">Monthly Rent</p>
+                  <p className="font-medium text-neutral-900">${selectedBid.amount}/month</p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">Lease Term</p>
+                  <p className="font-medium text-neutral-900">{selectedBid.leaseTerm} months</p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">Move-In Date</p>
+                  <p className="font-medium text-neutral-900">
+                    {new Date(selectedBid.moveInDate).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-neutral-600">Security Deposit</p>
+                  <p className="font-medium text-neutral-900">${selectedBid.amount}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Lease Document Preview */}
+            <div className="border border-neutral-200 rounded-lg p-4 bg-white">
+              <div className="flex items-center gap-2 mb-3">
+                <FileText className="w-5 h-5 text-neutral-600" />
+                <h4 className="font-semibold text-neutral-900">Lease Agreement</h4>
+              </div>
+              <div className="h-48 bg-neutral-100 rounded flex items-center justify-center text-neutral-600 text-sm">
+                <div className="text-center">
+                  <FileText className="w-12 h-12 mx-auto mb-2 text-neutral-400" />
+                  <p>Lease document preview</p>
+                  <p className="text-xs text-neutral-500 mt-1">In production, this would show the actual lease PDF</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Terms Acknowledgment */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-900">
+                <strong>Note:</strong> By clicking "Sign Lease", you agree to the terms and conditions outlined in the lease agreement.
+                In a production environment, this would integrate with DocuSign for legal e-signature.
+              </p>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

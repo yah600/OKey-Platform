@@ -30,12 +30,32 @@ export function TenantDocumentsPage() {
   });
 
   const handleView = (documentId: string, documentName: string) => {
-    toast.info('View Document', {
-      description: `Opening ${documentName}...`,
+    const document = documents.find((d) => d.id === documentId);
+    if (!document) return;
+
+    // In production, this would open the actual document URL
+    // For now, simulate opening in new tab
+    window.open(document.url, '_blank');
+
+    toast.success('Document Opened', {
+      description: `Opening ${documentName} in new tab...`,
     });
   };
 
   const handleDownload = (documentId: string, documentName: string) => {
+    const document = documents.find((d) => d.id === documentId);
+    if (!document) return;
+
+    // In production, this would trigger actual file download
+    // For now, simulate download by opening URL with download attribute
+    const link = window.document.createElement('a');
+    link.href = document.url;
+    link.download = documentName;
+    link.target = '_blank';
+    window.document.body.appendChild(link);
+    link.click();
+    window.document.body.removeChild(link);
+
     toast.success('Download Started', {
       description: `Downloading ${documentName}...`,
     });

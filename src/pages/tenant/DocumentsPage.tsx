@@ -36,17 +36,29 @@ export default function DocumentsPage() {
       : [];
 
   const handleDownload = (doc: Document) => {
+    // In production, this would trigger actual file download
+    // For now, simulate download by opening URL with download attribute
+    const link = window.document.createElement('a');
+    link.href = doc.url;
+    link.download = doc.name;
+    link.target = '_blank';
+    window.document.body.appendChild(link);
+    link.click();
+    window.document.body.removeChild(link);
+
     toast.success('Download Started', {
       description: `Downloading ${doc.name}...`,
     });
-    // In real app, would download from doc.url
   };
 
   const handleView = (doc: Document) => {
-    toast.info('View Document', {
-      description: 'Document viewer coming soon.',
+    // In production, this would open the actual document URL/viewer
+    // For now, simulate opening in new tab
+    window.open(doc.url, '_blank');
+
+    toast.success('Document Opened', {
+      description: `Opening ${doc.name} in new tab...`,
     });
-    // In real app, would open document viewer modal
   };
 
   if (isLoading) {

@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { UserCheck, Plus, Download, Building2, User, CheckCircle, XCircle, HelpCircle } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Card from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 import Loading from '../../../components/ui/Loading';
@@ -11,6 +14,31 @@ import Input from '../../../components/atoms/Input';
 import Textarea from '../../../components/atoms/Textarea';
 import Select from '../../../components/molecules/Select';
 import EmptyState from '../../../components/organisms/EmptyState';
+import { toast } from 'sonner';
+
+const responsibilitySchema = z.object({
+  itemName: z.string().min(3, 'Item name is required'),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  category: z.enum(['plumbing', 'hvac', 'electrical', 'structural', 'exterior', 'flooring', 'common-areas', 'other']),
+  responsibleParty: z.enum(['owner', 'association', 'shared']),
+  rationale: z.string().min(10, 'Rationale is required'),
+  legalReference: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+type ResponsibilityFormData = z.infer<typeof responsibilitySchema>;
+
+interface ResponsibilityItem {
+  id: number;
+  category: string;
+  item: string;
+  description: string;
+  responsibleParty: string;
+  rationale: string;
+  legalReference: string;
+  notes: string;
+  lastUpdated: string;
+}
 
 export default function OwnerResponsibilities() {
   const [isLoading, setIsLoading] = useState(true);
@@ -18,13 +46,8 @@ export default function OwnerResponsibilities() {
   const [activeTab, setActiveTab] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 400);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Mock responsibility items
-  const responsibilities = [
+  // Initial mock data
+  const initialResponsibilities: ResponsibilityItem[] = [
     {
       id: 1,
       category: 'Plumbing',
@@ -158,6 +181,51 @@ export default function OwnerResponsibilities() {
       lastUpdated: '2024-01-15',
     },
   ];
+
+  // Convert to state for adding new items
+  const [responsibilities, setResponsibilities] = useState<ResponsibilityItem[]>(initialResponsibilities);
+
+  // Form for adding new responsibility
+  const form = useForm<ResponsibilityFormData>({
+    resolver: zodResolver(responsibilitySchema),
+    defaultValues: {
+      itemName: '',
+      description: '',
+      category: 'other',
+      responsibleParty: 'owner',
+      rationale: '',
+      legalReference: '',
+      notes: '',
+    },
+  });
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 400);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleAddItem = form.handleSubmit((data) => {
+    const newItem: ResponsibilityItem = {
+      id: Math.max(...responsibilities.map((r) => r.id)) + 1,
+      category: data.category.charAt(0).toUpperCase() + data.category.slice(1),
+      item: data.itemName,
+      description: data.description,
+      responsibleParty: data.responsibleParty,
+      rationale: data.rationale,
+      legalReference: data.legalReference || 'N/A',
+      notes: data.notes || '',
+      lastUpdated: new Date().toISOString().split('T')[0],
+    };
+
+    setResponsibilities([newItem, ...responsibilities]);
+
+    toast.success('Responsibility Added', {
+      description: `${data.itemName} has been added successfully.`,
+    });
+
+    form.reset();
+    setShowAddModal(false);
+  });
 
   const tabs = [
     { id: 'all', label: 'All Items', count: responsibilities.length },
@@ -453,22 +521,33 @@ export default function OwnerResponsibilities() {
         size="lg"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setShowAddModal(false)}>
+            <Button variant="secondary" onClick={() => {
+              setShowAddModal(false);
+              form.reset();
+            }}>
               Cancel
             </Button>
-            <Button variant="primary" onClick={() => setShowAddModal(false)}>
+            <Button variant="primary" onClick={handleAddItem}>
               Add Item
             </Button>
           </>
         }
       >
-        <div className="space-y-4">
-          <Input label="Item Name" placeholder="e.g., Interior Plumbing Fixtures" required />
+        <form className="space-y-4">
+          <Input
+            label="Item Name"
+            placeholder="e.g., Interior Plumbing Fixtures"
+            required
+            {...form.register('itemName')}
+            error={form.formState.errors.itemName?.message}
+          />
           <Textarea
             label="Description"
             placeholder="Detailed description of the item or system..."
             rows={3}
             required
+            {...form.register('description')}
+            error={form.formState.errors.description?.message}
           />
           <div className="grid grid-cols-2 gap-4">
             <Select
@@ -484,6 +563,8 @@ export default function OwnerResponsibilities() {
                 { value: 'other', label: 'Other' },
               ]}
               required
+              {...form.register('category')}
+              error={form.formState.errors.category?.message}
             />
             <Select
               label="Responsible Party"
@@ -493,10 +574,14 @@ export default function OwnerResponsibilities() {
                 { value: 'shared', label: 'Shared Responsibility' },
               ]}
               required
+              {...form.register('responsibleParty')}
+              error={form.formState.errors.responsibleParty?.message}
             />
           </div>
           <Textarea
             label="Rationale"
+            {...form.register('rationale')}
+            error={form.formState.errors.rationale?.message}
             placeholder="Why is this party responsible? (e.g., Located within private portion)"
             rows={2}
             required
@@ -504,10 +589,17 @@ export default function OwnerResponsibilities() {
           <Input
             label="Legal Reference"
             placeholder="e.g., Declaration of Co-ownership, Article 12.3"
-            required
+            {...form.register('legalReference')}
+            error={form.formState.errors.legalReference?.message}
           />
-          <Textarea label="Additional Notes" placeholder="Any special conditions or exceptions..." rows={2} />
-        </div>
+          <Textarea
+            label="Additional Notes"
+            placeholder="Any special conditions or exceptions..."
+            rows={2}
+            {...form.register('notes')}
+            error={form.formState.errors.notes?.message}
+          />
+        </form>
       </Modal>
     </div>
   );
