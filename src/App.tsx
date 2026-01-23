@@ -8,6 +8,7 @@ import { LoadingScreen } from './components/global/LoadingScreen';
 const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
 const SignupPage = lazy(() => import('./pages/auth/SignupPage'));
 const DashboardLayout = lazy(() => import('./layouts/DashboardLayout'));
+const MarketplaceLayout = lazy(() => import('./layouts/MarketplaceLayout'));
 
 // Marketplace pages
 const MarketplaceHome = lazy(() => import('./pages/marketplace/MarketplaceHome'));
@@ -108,18 +109,20 @@ function App() {
         <Suspense fallback={<LoadingScreen />}>
           <Routes>
         {/* Public Marketplace Routes */}
-        <Route path="/" element={<MarketplaceHome />} />
-        <Route path="/marketplace/search" element={<PropertySearch />} />
-        <Route path="/marketplace/property/:id" element={<PropertyDetail />} />
-        <Route path="/marketplace/property/:propertyId/unit/:unitId" element={<UnitDetail />} />
+        <Route path="/" element={<MarketplaceLayout><MarketplaceHome /></MarketplaceLayout>} />
+        <Route path="/marketplace/search" element={<MarketplaceLayout><PropertySearch /></MarketplaceLayout>} />
+        <Route path="/marketplace/property/:id" element={<MarketplaceLayout><PropertyDetail /></MarketplaceLayout>} />
+        <Route path="/marketplace/property/:propertyId/unit/:unitId" element={<MarketplaceLayout><UnitDetail /></MarketplaceLayout>} />
 
         {/* Protected Marketplace Routes */}
         <Route
           path="/marketplace/my-bids"
           element={
-            <PrivateRoute>
-              <MyBids />
-            </PrivateRoute>
+            <MarketplaceLayout>
+              <PrivateRoute>
+                <MyBids />
+              </PrivateRoute>
+            </MarketplaceLayout>
           }
         />
 
