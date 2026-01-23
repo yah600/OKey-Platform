@@ -54,6 +54,7 @@ interface PaymentsState {
 
   // Payment Method Actions
   addPaymentMethod: (method: Omit<PaymentMethod, 'id'>) => void;
+  updatePaymentMethod: (method: PaymentMethod) => void;
   removePaymentMethod: (methodId: string) => void;
   setDefaultPaymentMethod: (methodId: string) => void;
   getDefaultPaymentMethod: () => PaymentMethod | undefined;
@@ -186,6 +187,12 @@ export const usePaymentsStore = create<PaymentsState>()(
 
         set((state) => ({
           paymentMethods: [...state.paymentMethods, newMethod],
+        }));
+      },
+
+      updatePaymentMethod: (method) => {
+        set((state) => ({
+          paymentMethods: state.paymentMethods.map((m) => (m.id === method.id ? method : m)),
         }));
       },
 
