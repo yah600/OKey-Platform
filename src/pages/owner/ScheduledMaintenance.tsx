@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Plus, Calendar, Clock, Wrench, Building2, AlertCircle, CheckCircle } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Loading from '../../components/ui/Loading';
@@ -11,10 +14,24 @@ import Modal from '../../components/organisms/Modal';
 import Input from '../../components/atoms/Input';
 import Textarea from '../../components/atoms/Textarea';
 import Select from '../../components/molecules/Select';
-import DatePicker from '../../components/molecules/DatePicker';
 import { useAuthStore } from '../../store/authStore';
 import { useScheduledMaintenanceStore } from '../../store/scheduledMaintenanceStore';
+import { useOwnerPropertiesStore } from '../../store/ownerPropertiesStore';
 import { toast } from 'sonner';
+
+const scheduleSchema = z.object({
+  title: z.string().min(3, 'Title must be at least 3 characters'),
+  description: z.string().min(10, 'Description must be at least 10 characters'),
+  propertyId: z.string().optional(),
+  propertyName: z.string().min(1, 'Property is required'),
+  frequency: z.enum(['Daily', 'Weekly', 'Monthly', 'Quarterly', 'Annually']),
+  nextDue: z.string().min(1, 'Due date is required'),
+  priority: z.enum(['low', 'medium', 'high']),
+  vendorName: z.string().min(1, 'Vendor name is required'),
+  estimatedCost: z.coerce.number().min(0, 'Cost must be positive'),
+});
+
+type ScheduleFormData = z.infer<typeof scheduleSchema>;
 
 export default function ScheduledMaintenance() {
   const [isLoading, setIsLoading] = useState(true);
@@ -22,7 +39,22 @@ export default function ScheduledMaintenance() {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [showAddModal, setShowAddModal] = useState(false);
   const { user } = useAuthStore();
-  const { getSchedulesByOwner, markAsCompleted, deleteSchedule } = useScheduledMaintenanceStore();
+  const { getSchedulesByOwner, markAsCompleted, deleteSchedule, addSchedule } = useScheduledMaintenanceStore();
+  const { getPropertiesByOwner } = useOwnerPropertiesStore();
+
+  const form = useForm<ScheduleFormData>({
+    resolver: zodResolver(scheduleSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      propertyName: '',
+      frequency: 'Monthly',
+      nextDue: '',
+      priority: 'medium',
+      vendorName: '',
+      estimatedCost: 0,
+    },
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 400);
@@ -30,6 +62,12 @@ export default function ScheduledMaintenance() {
   }, []);
 
   const schedules = user ? getSchedulesByOwner(user.id) : [];
+  const properties = user ? getPropertiesByOwner(user.id) : [];
+
+  const propertyOptions = [
+    { value: 'all', label: 'All Properties' },
+    ...properties.map((p) => ({ value: p.id, label: p.name })),
+  ];
 
   const tabs = [
     { id: 'upcoming', label: 'Upcoming', count: schedules.filter(s => s.status === 'upcoming').length },
@@ -62,12 +100,30 @@ export default function ScheduledMaintenance() {
     }
   };
 
-  const handleAddSchedule = () => {
-    toast.info('Add Schedule', {
-      description: 'Schedule creation form coming soon.',
+  const handleAddSchedule = form.handleSubmit((data) => {
+    if (!user) return;
+
+    addSchedule({
+      ownerId: user.id,
+      propertyId: data.propertyId,
+      propertyName: data.propertyName,
+      title: data.title,
+      description: data.description,
+      frequency: data.frequency,
+      nextDue: data.nextDue,
+      priority: data.priority,
+      vendorName: data.vendorName,
+      estimatedCost: data.estimatedCost,
+      status: 'upcoming',
     });
+
+    toast.success('Schedule Created', {
+      description: `${data.title} has been scheduled successfully.`,
+    });
+
+    form.reset();
     setShowAddModal(false);
-  };
+  });
 
   const isOverdue = (date: string) => {
     return new Date(date) < new Date();
@@ -234,13 +290,19 @@ export default function ScheduledMaintenance() {
       {/* Add Schedule Modal */}
       <Modal
         isOpen={showAddModal}
-        onClose={() => setShowAddModal(false)}
+        onClose={() => {
+          setShowAddModal(false);
+          form.reset();
+        }}
         title="Create Maintenance Schedule"
         description="Set up a recurring maintenance task"
         size="md"
         footer={
           <>
-            <Button variant="secondary" onClick={() => setShowAddModal(false)}>
+            <Button variant="secondary" onClick={() => {
+              setShowAddModal(false);
+              form.reset();
+            }}>
               Cancel
             </Button>
             <Button variant="primary" onClick={handleAddSchedule}>
@@ -249,23 +311,34 @@ export default function ScheduledMaintenance() {
           </>
         }
       >
-        <div className="space-y-4">
-          <Input label="Task Title" placeholder="e.g., HVAC System Inspection" required />
+        <form className="space-y-4">
+          <Input
+            label="Task Title"
+            placeholder="e.g., HVAC System Inspection"
+            required
+            {...form.register('title')}
+            error={form.formState.errors.title?.message}
+          />
           <Textarea
             label="Description"
             placeholder="Describe the maintenance task..."
             rows={3}
+            {...form.register('description')}
+            error={form.formState.errors.description?.message}
           />
           <div className="grid grid-cols-2 gap-4">
             <Select
               label="Property"
-              options={[
-                { value: 'all', label: 'All Properties' },
-                { value: 'sunset', label: 'Sunset Apartments' },
-                { value: 'downtown', label: 'Downtown Plaza' },
-                { value: 'urban', label: 'Urban Lofts' },
-              ]}
+              options={propertyOptions}
               required
+              {...form.register('propertyName')}
+              onChange={(e) => {
+                const selectedValue = e.target.value;
+                const property = properties.find((p) => p.id === selectedValue);
+                form.setValue('propertyName', property?.name || 'All Properties');
+                form.setValue('propertyId', selectedValue === 'all' ? undefined : selectedValue);
+              }}
+              error={form.formState.errors.propertyName?.message}
             />
             <Select
               label="Priority"
@@ -275,26 +348,49 @@ export default function ScheduledMaintenance() {
                 { value: 'high', label: 'High' },
               ]}
               required
+              {...form.register('priority')}
+              error={form.formState.errors.priority?.message}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Select
               label="Frequency"
               options={[
-                { value: 'weekly', label: 'Weekly' },
-                { value: 'monthly', label: 'Monthly' },
-                { value: 'quarterly', label: 'Quarterly' },
-                { value: 'annually', label: 'Annually' },
+                { value: 'Daily', label: 'Daily' },
+                { value: 'Weekly', label: 'Weekly' },
+                { value: 'Monthly', label: 'Monthly' },
+                { value: 'Quarterly', label: 'Quarterly' },
+                { value: 'Annually', label: 'Annually' },
               ]}
               required
+              {...form.register('frequency')}
+              error={form.formState.errors.frequency?.message}
             />
-            <DatePicker label="First Due Date" required />
+            <Input
+              label="First Due Date"
+              type="date"
+              required
+              {...form.register('nextDue')}
+              error={form.formState.errors.nextDue?.message}
+            />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Vendor" placeholder="Vendor name" />
-            <Input label="Estimated Cost" type="number" placeholder="0.00" />
+            <Input
+              label="Vendor"
+              placeholder="Vendor name"
+              required
+              {...form.register('vendorName')}
+              error={form.formState.errors.vendorName?.message}
+            />
+            <Input
+              label="Estimated Cost"
+              type="number"
+              placeholder="0.00"
+              {...form.register('estimatedCost')}
+              error={form.formState.errors.estimatedCost?.message}
+            />
           </div>
-        </div>
+        </form>
       </Modal>
     </div>
   );
